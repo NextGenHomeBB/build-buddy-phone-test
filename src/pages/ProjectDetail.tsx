@@ -44,6 +44,7 @@ import { ProjectMaterials } from '@/components/project/ProjectMaterials';
 import { ProjectChecklistsTab } from '@/components/project/ProjectChecklistsTab';
 import { ProjectDocuments } from '@/components/project/ProjectDocuments';
 import { LabourTracking } from '@/components/project/LabourTracking';
+import { ProjectActivity } from '@/components/project/ProjectActivity';
 import { getPriorityIcon, getStatusColor, getPhaseStatusIcon } from '@/lib/ui-helpers';
 import { useToast } from '@/hooks/use-toast';
 import { useProjectSeeding } from '@/hooks/useProjectSeeding';
@@ -665,19 +666,7 @@ export default function ProjectDetail() {
           </TabsContent>
 
           <TabsContent value="activity">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Activity Feed
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  Activity feed coming soon...
-                </div>
-              </CardContent>
-            </Card>
+            <ProjectActivity projectId={id!} />
           </TabsContent>
         </Tabs>
 
