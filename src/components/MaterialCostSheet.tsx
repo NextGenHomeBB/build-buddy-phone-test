@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,9 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
-import { Calculator, Save, X } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Calculator, Save, X, Search, Edit3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useInsertMaterialCost, useEstimatePhaseCosts } from '@/services/phaseCosts.service';
+import { materialService } from '@/services/materialService';
+import { useQuery } from '@tanstack/react-query';
 
 const materialCostSchema = z.object({
   description: z.string().min(1, 'Description is required'),
@@ -59,10 +62,29 @@ const units = [
 
 export function MaterialCostSheet({ phaseId, open, onClose }: MaterialCostSheetProps) {
   const [isCalculating, setIsCalculating] = useState(false);
+  const [searchMode, setSearchMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
   const { toast } = useToast();
   
   const insertMaterialCostMutation = useInsertMaterialCost();
   const estimatePhaseCostsMutation = useEstimatePhaseCosts();
+
+  // Fetch materials for search
+  const { data: materials = [], isLoading: materialsLoading } = useQuery({
+    queryKey: ['materials'],
+    queryFn: materialService.getMaterials,
+  });
+
+  // Filter materials based on search query
+  const filteredMaterials = useMemo(() => {
+    if (!searchQuery) return materials.slice(0, 10); // Show first 10 when no search
+    return materials.filter(material =>
+      material.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      material.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      material.category?.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 50); // Limit to 50 results
+  }, [materials, searchQuery]);
 
   const form = useForm<MaterialCostForm>({
     resolver: zodResolver(materialCostSchema),
@@ -76,6 +98,29 @@ export function MaterialCostSheet({ phaseId, open, onClose }: MaterialCostSheetP
   });
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = form;
+
+  // Handle material selection from search
+  const handleMaterialSelect = (material: any) => {
+    setSelectedMaterial(material);
+    setValue('description', material.name);
+    setValue('category', material.category || 'Other');
+    setValue('unit', material.unit || 'piece');
+    setValue('unit_price', material.price_per_unit || 0);
+    setSearchMode(false);
+    setSearchQuery('');
+    
+    toast({
+      title: "Material Selected",
+      description: `${material.name} - ${material.category || 'Unknown category'}`,
+    });
+  };
+
+  // Toggle between search and manual entry
+  const toggleSearchMode = () => {
+    setSearchMode(!searchMode);
+    setSearchQuery('');
+    setSelectedMaterial(null);
+  };
 
   const handleAICalculator = async () => {
     const description = watch('description');
@@ -153,13 +198,79 @@ export function MaterialCostSheet({ phaseId, open, onClose }: MaterialCostSheetP
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Input
-              id="description"
-              {...register('description')}
-              placeholder="e.g. Premium concrete mix"
-              className="w-full"
-            />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="description">Material</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={toggleSearchMode}
+                className="text-xs"
+              >
+                {searchMode ? <Edit3 className="h-3 w-3 mr-1" /> : <Search className="h-3 w-3 mr-1" />}
+                {searchMode ? 'Manual Entry' : 'Search Database'}
+              </Button>
+            </div>
+            
+            {searchMode ? (
+              <div className="space-y-2">
+                <Command className="rounded-lg border">
+                  <CommandInput
+                    placeholder="Search materials..."
+                    value={searchQuery}
+                    onValueChange={setSearchQuery}
+                  />
+                  <CommandList className="max-h-48">
+                    <CommandEmpty>
+                      {materialsLoading ? 'Loading materials...' : 'No materials found.'}
+                    </CommandEmpty>
+                    <CommandGroup>
+                      {filteredMaterials.map((material) => (
+                        <CommandItem
+                          key={material.id}
+                          onSelect={() => handleMaterialSelect(material)}
+                          className="cursor-pointer"
+                        >
+                          <div className="flex flex-col gap-1 w-full">
+                            <div className="flex justify-between items-start">
+                              <span className="font-medium">{material.name}</span>
+                              <span className="text-sm text-muted-foreground">
+                                €{material.price_per_unit || 0}/{material.unit || 'piece'}
+                              </span>
+                            </div>
+                            <div className="flex gap-2 text-xs text-muted-foreground">
+                              <span className="bg-secondary px-2 py-0.5 rounded">
+                                {material.category || 'Other'}
+                              </span>
+                              {material.brand && (
+                                <span className="bg-accent px-2 py-0.5 rounded">
+                                  {material.brand}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </div>
+            ) : (
+              <Input
+                id="description"
+                {...register('description')}
+                placeholder="e.g. Premium concrete mix"
+                className="w-full"
+              />
+            )}
+            
+            {selectedMaterial && !searchMode && (
+              <div className="text-xs text-muted-foreground p-2 bg-accent rounded">
+                Selected: {selectedMaterial.name} 
+                {selectedMaterial.brand && ` (${selectedMaterial.brand})`}
+              </div>
+            )}
+            
             {errors.description && (
               <p className="text-sm text-destructive">{errors.description.message}</p>
             )}
