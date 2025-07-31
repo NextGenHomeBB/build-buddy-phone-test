@@ -38,6 +38,7 @@ import { ProjectOverview } from '@/components/project/ProjectOverview';
 import { ProjectTeamTab } from './ProjectTeamTab';
 import { CreatePhaseDialog } from '@/components/project/CreatePhaseDialog';
 import { EditPhaseDialog } from '@/components/project/EditPhaseDialog';
+import { PhaseBudgetDisplay } from '@/components/PhaseBudgetDisplay';
 import { PhaseCalendar } from '@/components/PhaseCalendar';
 import { ProjectMaterials } from '@/components/project/ProjectMaterials';
 import { ProjectChecklistsTab } from '@/components/project/ProjectChecklistsTab';
@@ -340,9 +341,9 @@ export default function ProjectDetail() {
                   </div>
                   <div>
                     <div className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>Budget</div>
-                    <div className={`font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>
-                      ${(project.spent / 1000).toFixed(0)}k / ${(project.budget / 1000).toFixed(0)}k
-                    </div>
+                     <div className={`font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>
+                       €{(project.spent / 1000).toFixed(0)}k / €{(project.budget / 1000).toFixed(0)}k
+                     </div>
                   </div>
                 </div>
                 <Progress value={(project.spent / project.budget) * 100} className="mt-2" />
@@ -568,10 +569,10 @@ export default function ProjectDetail() {
                                 <Calendar className="h-3 w-3" />
                                 {phase.start_date && phase.end_date ? `${format(new Date(phase.start_date), 'MMM dd')} - ${format(new Date(phase.end_date), 'MMM dd')}` : 'No dates'}
                               </span>
-                              <span className="flex items-center gap-1">
-                                <DollarSign className="h-3 w-3" />
-                                ${((phase.material_cost || 0) + (phase.labour_cost || 0)).toLocaleString()} / ${phase.budget.toLocaleString()}
-                              </span>
+                               <span className="flex items-center gap-1">
+                                 <DollarSign className="h-3 w-3" />
+                                 €{((phase.material_cost || 0) + (phase.labour_cost || 0)).toLocaleString()} / €{phase.budget.toLocaleString()}
+                               </span>
                               <span className="flex items-center gap-1">
                                 <CheckCircle className="h-3 w-3" />
                                 {(() => {
