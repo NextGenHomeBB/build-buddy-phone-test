@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, CheckSquare, List, Layers, Building2, Home } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckSquare, List, Layers, Building2, Home, Copy } from 'lucide-react';
 import { useChecklists, useCreateChecklist, useUpdateChecklist, useDeleteChecklist } from '@/hooks/useChecklists';
 import { useDefaultPhases, useUpdateDefaultPhase, DefaultPhase } from '@/hooks/useDefaultPhases';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +29,10 @@ export default function AdminChecklists() {
   const [editingChecklist, setEditingChecklist] = useState<any>(null);
   const [isPhaseDialogOpen, setIsPhaseDialogOpen] = useState(false);
   const [editingPhase, setEditingPhase] = useState<DefaultPhase | null>(null);
+  const [isAddFromTemplateDialogOpen, setIsAddFromTemplateDialogOpen] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [selectedPhaseId, setSelectedPhaseId] = useState<string>('');
+  const [selectedTemplateItems, setSelectedTemplateItems] = useState<string[]>([]);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -275,6 +281,58 @@ export default function AdminChecklists() {
     }
   };
 
+  const handleAddFromTemplate = () => {
+    if (!selectedPhaseId || !selectedTemplateId || selectedTemplateItems.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select a phase, template, and at least one item",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedPhase = defaultPhases.find(p => p.id === selectedPhaseId);
+    const selectedTemplate = checklists.find(c => c.id === selectedTemplateId);
+    
+    if (!selectedPhase || !selectedTemplate) return;
+
+    const templateItems = Array.isArray(selectedTemplate.items) ? selectedTemplate.items : [];
+    const selectedItems = templateItems
+      .filter((item: any) => selectedTemplateItems.includes(item.id))
+      .map((item: any) => item.title || item);
+
+    const updatedChecklist = [...selectedPhase.checklist, ...selectedItems];
+
+    updateDefaultPhaseMutation.mutate({
+      id: selectedPhaseId,
+      updates: {
+        name: selectedPhase.name,
+        checklist: updatedChecklist,
+      }
+    });
+
+    // Reset form
+    setSelectedTemplateId('');
+    setSelectedPhaseId('');
+    setSelectedTemplateItems([]);
+    setIsAddFromTemplateDialogOpen(false);
+
+    toast({
+      title: "Success",
+      description: `Added ${selectedItems.length} items to ${selectedPhase.name}`,
+    });
+  };
+
+  const handleTemplateItemToggle = (itemId: string) => {
+    setSelectedTemplateItems(prev => 
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  const selectedTemplate = checklists.find(c => c.id === selectedTemplateId);
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -462,6 +520,111 @@ export default function AdminChecklists() {
             <TabsTrigger value="phases" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
               Default Phases
+              <Dialog open={isAddFromTemplateDialogOpen} onOpenChange={setIsAddFromTemplateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="ml-2 h-6 px-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle>Add From Template</DialogTitle>
+                    <DialogDescription>
+                      Select a custom template and add items to a default phase
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="phase-select">Select Phase</Label>
+                      <Select value={selectedPhaseId} onValueChange={setSelectedPhaseId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose a phase" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {defaultPhases.map((phase) => (
+                            <SelectItem key={phase.id} value={phase.id}>
+                              {phase.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="template-select">Select Template</Label>
+                      <Select value={selectedTemplateId} onValueChange={(value) => {
+                        setSelectedTemplateId(value);
+                        setSelectedTemplateItems([]);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose a template" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {checklists.map((template) => (
+                            <SelectItem key={template.id} value={template.id}>
+                              {template.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {selectedTemplate && (
+                      <div>
+                        <Label>Select Items to Add</Label>
+                        <div className="max-h-48 overflow-y-auto border rounded p-3 space-y-2">
+                          {(Array.isArray(selectedTemplate.items) ? selectedTemplate.items : []).map((item: any, index: number) => {
+                            const itemId = item.id || `item-${index}`;
+                            const itemTitle = item.title || item;
+                            return (
+                              <div key={itemId} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={itemId}
+                                  checked={selectedTemplateItems.includes(itemId)}
+                                  onCheckedChange={() => handleTemplateItemToggle(itemId)}
+                                />
+                                <Label
+                                  htmlFor={itemId}
+                                  className="text-sm flex-1 cursor-pointer"
+                                >
+                                  {itemTitle}
+                                </Label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 pt-4">
+                      <Button 
+                        onClick={handleAddFromTemplate}
+                        className="flex-1"
+                        disabled={!selectedPhaseId || !selectedTemplateId || selectedTemplateItems.length === 0 || updateDefaultPhaseMutation.isPending}
+                      >
+                        Add Selected Items
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setSelectedTemplateId('');
+                          setSelectedPhaseId('');
+                          setSelectedTemplateItems([]);
+                          setIsAddFromTemplateDialogOpen(false);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </TabsTrigger>
           </TabsList>
 
