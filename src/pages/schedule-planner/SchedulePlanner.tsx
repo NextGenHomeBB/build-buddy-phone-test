@@ -38,6 +38,7 @@ import { AssignTreeSheet } from '@/components/AssignTreeSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useDebouncedCallback } from 'use-debounce';
+import { projectService } from '@/services/projectService';
 
 interface DraggableWorker {
   id: string;
@@ -319,19 +320,18 @@ export default function SchedulePlanner() {
   const createScheduleFromProjects = useCallback(async (selectedProjectIds: string[]) => {
     setIsCreatingSample(true);
     try {
-      // Fetch selected projects from database
-      const { data: projects, error } = await supabase
-        .from('projects')
-        .select('id, name, location, status')
-        .in('id', selectedProjectIds)
-        .in('status', ['planning', 'active']);
-
-      if (error) throw error;
+      // Fetch accessible projects using permission-aware service
+      const allAccessibleProjects = await projectService.getAccessibleProjects();
+      
+      // Filter by selected project IDs and status
+      const projects = allAccessibleProjects
+        .filter(project => selectedProjectIds.includes(project.id))
+        .filter(project => ['planning', 'active'].includes(project.status));
 
       if (!projects || projects.length === 0) {
         toast({
           title: "No valid projects found",
-          description: "Selected projects may not be in active or planning status",
+          description: "Selected projects may not be accessible or in active/planning status",
           variant: "destructive"
         });
         return;
