@@ -515,9 +515,9 @@ export default function SchedulePlanner() {
               {isCreatingSample ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <Plus className="mr-2 h-4 w-4" />
+                <Calendar className="mr-2 h-4 w-4" />
               )}
-              Create from Projects
+              Schedule Projects
             </Button>
             
             <Button 
