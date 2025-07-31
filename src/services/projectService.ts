@@ -192,6 +192,63 @@ export const projectService = {
   },
 
   async deleteProject(id: string) {
+    // First, delete related records that might have foreign key constraints
+    
+    // Delete schedule items
+    await supabase
+      .from('schedule_items')
+      .delete()
+      .eq('project_id', id);
+    
+    // Delete project materials
+    await supabase
+      .from('project_materials')
+      .delete()
+      .eq('project_id', id);
+    
+    // Delete project documents
+    await supabase
+      .from('project_documents')
+      .delete()
+      .eq('project_id', id);
+    
+    // Delete project checklists
+    await supabase
+      .from('project_checklists')
+      .delete()
+      .eq('project_id', id);
+    
+    // Delete user project roles
+    await supabase
+      .from('user_project_role')
+      .delete()
+      .eq('project_id', id);
+    
+    // Delete labour entries
+    await supabase
+      .from('labour_entries')
+      .delete()
+      .eq('project_id', id);
+    
+    // Delete time sheets
+    await supabase
+      .from('time_sheets')
+      .delete()
+      .eq('project_id', id);
+    
+    // Delete tasks (this will also handle task_workers and task_comments via cascade)
+    await supabase
+      .from('tasks')
+      .delete()
+      .eq('project_id', id);
+    
+    // Delete project phases (this will handle phase-related data)
+    await supabase
+      .from('project_phases')
+      .delete()
+      .eq('project_id', id);
+    
+    // Finally, delete the project itself
     const { data, error } = await supabase
       .from('projects')
       .delete()
