@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Edit, Trash2, CheckSquare, List, Layers, Building2, Home, Copy } from 'lucide-react';
 import { useChecklists, useCreateChecklist, useUpdateChecklist, useDeleteChecklist } from '@/hooks/useChecklists';
 import { useDefaultPhases, useUpdateDefaultPhase, DefaultPhase } from '@/hooks/useDefaultPhases';
+import { useSyncAllPhases, useSyncSpecificPhase, useStandardizePhaseName } from '@/hooks/usePhaseSyncService';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -23,6 +24,9 @@ export default function AdminChecklists() {
   const updateChecklistMutation = useUpdateChecklist();
   const deleteChecklistMutation = useDeleteChecklist();
   const updateDefaultPhaseMutation = useUpdateDefaultPhase();
+  const syncAllPhasesMutation = useSyncAllPhases();
+  const syncSpecificPhaseMutation = useSyncSpecificPhase();
+  const standardizePhaseMutation = useStandardizePhaseName();
   const { toast } = useToast();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -347,6 +351,16 @@ export default function AdminChecklists() {
           </div>
 
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => syncAllPhasesMutation.mutate()}
+              disabled={syncAllPhasesMutation.isPending}
+              className="hidden lg:flex"
+            >
+              <Layers className="h-4 w-4 mr-2" />
+              {syncAllPhasesMutation.isPending ? 'Syncing...' : 'Sync All Phases'}
+            </Button>
+            
             <Button
               variant="outline"
               onClick={handleSeedRenovationChecklists}
@@ -770,18 +784,50 @@ export default function AdminChecklists() {
                 defaultPhases.map((phase) => (
                   <Card key={phase.id}>
                     <CardHeader>
-                      <div className="flex items-center justify-between">
+                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Layers className="h-5 w-5" />
                           <CardTitle>{phase.name}</CardTitle>
+                          {phase.name === "Elektra Afwerken" && (
+                            <Badge variant="secondary" className="text-xs">
+                              Name mismatch
+                            </Badge>
+                          )}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditPhase(phase)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => syncSpecificPhaseMutation.mutate({
+                              phaseName: phase.name,
+                              defaultChecklist: phase.checklist
+                            })}
+                            disabled={syncSpecificPhaseMutation.isPending}
+                          >
+                            <Layers className="h-3 w-3 mr-1" />
+                            Sync
+                          </Button>
+                          {phase.name === "Elektra Afwerken" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => standardizePhaseMutation.mutate({
+                                currentName: "Elektra Afwerken",
+                                newName: "Elektra"
+                              })}
+                              disabled={standardizePhaseMutation.isPending}
+                            >
+                              Fix Name
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditPhase(phase)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                       <CardDescription>
                         {phase.checklist.length} checklist items
