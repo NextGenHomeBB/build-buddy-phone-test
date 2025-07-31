@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { usePhaseCalendar } from '@/hooks/usePhaseCalendar';
 import { usePhasePlanningMutation } from '@/services/phasePlanning.service';
-import { Calendar, GanttChart, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { Calendar, GanttChart, ChevronLeft, ChevronRight, Plus, Trash2, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { SelectPhaseDialog } from '@/components/project/SelectPhaseDialog';
 import { useRoleAccess } from '@/hooks/useRoleAccess';
+import { useCalendarExport } from '@/hooks/useCalendarExport';
 
 interface PhaseCalendarProps {
   projectId: string;
@@ -27,6 +28,7 @@ export function PhaseCalendar({ projectId }: PhaseCalendarProps) {
   const { toast } = useToast();
   const { canAddPhase } = useRoleAccess();
   const queryClient = useQueryClient();
+  const { exportToAppleCalendar, isExporting, canExport } = useCalendarExport(projectId);
 
   // Simple Gantt representation using HTML/CSS
   const ganttPhases = phases.filter(phase => phase.start_date && phase.end_date);
@@ -130,14 +132,26 @@ export function PhaseCalendar({ projectId }: PhaseCalendarProps) {
             <Calendar className="h-5 w-5" />
             Phase Planning
           </CardTitle>
-          {canAddPhase() && (
-            <SelectPhaseDialog projectId={projectId}>
-              <Button size="sm" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Choose Phase
-              </Button>
-            </SelectPhaseDialog>
-          )}
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              onClick={exportToAppleCalendar}
+              disabled={isExporting || !canExport}
+            >
+              <Download className="h-4 w-4" />
+              {isExporting ? 'Exporting...' : 'Sync to Apple Calendar'}
+            </Button>
+            {canAddPhase() && (
+              <SelectPhaseDialog projectId={projectId}>
+                <Button size="sm" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Choose Phase
+                </Button>
+              </SelectPhaseDialog>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
