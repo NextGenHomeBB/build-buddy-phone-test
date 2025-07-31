@@ -21,11 +21,15 @@ export function ProjectSelectionDialog({
   isCreating 
 }: ProjectSelectionDialogProps) {
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
-  const { data: projects = [], isLoading } = useAccessibleProjects();
+  const { data: projects = [], isLoading, refetch } = useAccessibleProjects();
 
   const availableProjects = projects.filter(project => 
     project.status === 'planning' || project.status === 'active'
   );
+
+  // Debug logging
+  console.log('🔍 ProjectSelectionDialog - projects:', projects);
+  console.log('🔍 ProjectSelectionDialog - availableProjects:', availableProjects);
 
   const handleProjectToggle = (projectId: string) => {
     setSelectedProjects(prev => 
