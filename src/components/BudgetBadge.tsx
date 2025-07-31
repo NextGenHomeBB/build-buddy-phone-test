@@ -8,6 +8,17 @@ interface BudgetBadgeProps {
 
 export function BudgetBadge({ amount, className }: BudgetBadgeProps) {
   const isNegative = amount < 0;
+  const hasNoBudget = amount === 0;
+  
+  // Don't show badge if there's no budget set
+  if (hasNoBudget) {
+    return (
+      <Badge variant="outline" className={`flex items-center gap-1 ${className}`}>
+        <Euro className="h-3 w-3" />
+        <span className="text-xs opacity-75">No budget set</span>
+      </Badge>
+    );
+  }
   
   return (
     <Badge 
@@ -16,9 +27,11 @@ export function BudgetBadge({ amount, className }: BudgetBadgeProps) {
     >
       <Euro className="h-3 w-3" />
       <span className="font-medium">
-        {amount >= 0 ? '+' : ''}{amount.toFixed(0)}
+        €{Math.abs(amount).toLocaleString()}
       </span>
-      <span className="text-xs opacity-75">remaining</span>
+      <span className="text-xs opacity-75">
+        {isNegative ? 'over budget' : 'remaining'}
+      </span>
     </Badge>
   );
 }
