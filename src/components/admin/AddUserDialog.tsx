@@ -18,7 +18,7 @@ export function AddUserDialog({ isOpen, onOpenChange, onAddUser }: AddUserDialog
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: '' as 'admin' | 'manager' | 'worker' | '',
+    role: '' as 'admin' | 'manager' | 'worker' | 'viewer' | '',
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -107,6 +107,7 @@ export function AddUserDialog({ isOpen, onOpenChange, onAddUser }: AddUserDialog
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="manager">Manager</SelectItem>
                 <SelectItem value="worker">Worker</SelectItem>
+                <SelectItem value="viewer">Viewer</SelectItem>
               </SelectContent>
             </Select>
           </div>
