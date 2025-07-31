@@ -47,6 +47,7 @@ import { getPriorityIcon, getStatusColor, getPhaseStatusIcon } from '@/lib/ui-he
 import { useToast } from '@/hooks/use-toast';
 import { useProjectSeeding } from '@/hooks/useProjectSeeding';
 import { QuickAssignDrawer } from '@/components/QuickAssignDrawer';
+import { usePhaseTasks, getTaskCountsForPhase } from '@/hooks/usePhaseTasks';
 
 // Force rebuild after revert to fix dynamic import issue
 export default function ProjectDetail() {
@@ -60,6 +61,7 @@ export default function ProjectDetail() {
   const queryClient = useQueryClient();
   const seedPhases = useProjectSeeding(id!);
   const isMobile = useIsMobile();
+  const { data: phaseTaskCounts = {} } = usePhaseTasks(id!);
 
   // Mutation to update phase status
   const updatePhaseStatus = useMutation({
@@ -572,7 +574,10 @@ export default function ProjectDetail() {
                               </span>
                               <span className="flex items-center gap-1">
                                 <CheckCircle className="h-3 w-3" />
-                                0 / 0 tasks
+                                {(() => {
+                                  const taskCounts = getTaskCountsForPhase(phaseTaskCounts, phase.id);
+                                  return `${taskCounts.completed} / ${taskCounts.total} tasks`;
+                                })()}
                               </span>
                             </div>
                           </div>
