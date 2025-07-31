@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Progress } from '@/components/ui/progress';
 import { BudgetBadge } from '@/components/BudgetBadge';
+import { PhaseBudgetDisplay } from '@/components/PhaseBudgetDisplay';
 import { PhaseCostDisplay } from '@/components/PhaseCostDisplay';
 import { MaterialCostSheet } from '@/components/MaterialCostSheet';
 import { LabourCostSheet } from '@/components/LabourCostSheet';
@@ -451,11 +452,11 @@ export default function PhaseDetail() {
                     <div>
                       <div className="text-sm text-muted-foreground">Budget</div>
                       <div className="text-lg font-semibold">
-                        ${(phase.spent / 1000).toFixed(0)}k / ${(phase.budget / 1000).toFixed(0)}k
+                        €{(((phase.material_cost || 0) + (phase.labour_cost || 0)) / 1000).toFixed(0)}k / €{(phase.budget / 1000).toFixed(0)}k
                       </div>
                     </div>
                   </div>
-                  <Progress value={phase.budget > 0 ? (phase.spent / phase.budget) * 100 : 0} className="mt-2" />
+                  <Progress value={phase.budget > 0 ? (((phase.material_cost || 0) + (phase.labour_cost || 0)) / phase.budget) * 100 : 0} className="mt-2" />
                 </CardContent>
               </Card>
             </EditPhaseBudgetDialog>
@@ -551,11 +552,14 @@ export default function PhaseDetail() {
         )}
 
         {activeTab === 'costs' && (
-          <PhaseCostDisplay
-            phaseId={phase.id}
-            onAddMaterialCost={() => setShowMaterialCostSheet(true)}
-            onAddLabourCost={() => setShowLabourCostSheet(true)}
-          />
+          <div className="space-y-6">
+            <PhaseBudgetDisplay phase={phase} />
+            <PhaseCostDisplay
+              phaseId={phase.id}
+              onAddMaterialCost={() => setShowMaterialCostSheet(true)}
+              onAddLabourCost={() => setShowLabourCostSheet(true)}
+            />
+          </div>
         )}
       </div>
 
