@@ -11,7 +11,7 @@ export function useAvailableProjects() {
       const { data, error } = await supabase
         .from('projects')
         .select('id, name, status')
-        .eq('status', 'active')
+        .in('status', ['active', 'planning'])
         .order('name', { ascending: true });
 
       if (error) throw error;
