@@ -352,7 +352,8 @@ export default function SchedulePlanner() {
       const scheduleData = {
         workDate: selectedDate,
         items: scheduleItems,
-        absences: []
+        absences: [],
+        skipAutoImport: true // Skip auto-import since we're using existing projects
       };
 
       await upsertSchedule.mutateAsync(scheduleData);

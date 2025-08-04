@@ -23,6 +23,7 @@ export interface ParsedSchedule {
   workDate: Date;
   items: ParsedScheduleItem[];
   absences: ParsedAbsence[];
+  skipAutoImport?: boolean; // Flag to skip auto-import when projects are explicitly selected
 }
 
 const CATEGORY_KEYWORDS = {

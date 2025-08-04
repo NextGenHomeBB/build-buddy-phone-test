@@ -92,8 +92,10 @@ export function useUpsertSchedule() {
     mutationFn: async (data: ParsedSchedule) => {
       const dateStr = format(data.workDate, 'yyyy-MM-dd');
 
-      // Auto-create missing projects and workers
-      const autoImportResult = await autoCreateMissingProjectsAndWorkers(data);
+      // Auto-create missing projects and workers only if not skipped
+      const autoImportResult = data.skipAutoImport ? 
+        { projectMapping: {}, workerMapping: {}, createdProjects: 0, createdWorkers: 0 } : 
+        await autoCreateMissingProjectsAndWorkers(data);
 
       // First, upsert the schedule
       const { data: schedule, error: scheduleError } = await supabase
