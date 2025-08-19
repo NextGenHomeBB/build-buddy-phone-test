@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { useAccessibleProjects } from "@/hooks/useProjects";
+import { CacheClearDialog } from "@/components/CacheClearDialog";
+import { SyncStatusDisplay } from "@/components/SyncStatusDisplay";
+import { Settings } from "lucide-react";
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const {
@@ -48,6 +51,9 @@ export default function Dashboard() {
       </div>;
   }
   return <div className="space-y-6 lg:space-y-8">
+      {/* Sync Status */}
+      <SyncStatusDisplay />
+      
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -59,10 +65,19 @@ export default function Dashboard() {
           </p>
         </div>
         
-        {canCreateProject() && <Button size="lg" className="sm:w-auto w-full bg-green-500 hover:bg-green-400 text-gray-950">
-            <Plus className="h-4 w-4 mr-2" />
-            New Project
-          </Button>}
+        <div className="flex items-center gap-2">
+          <CacheClearDialog>
+            <Button variant="outline" size="sm">
+              <Settings className="h-4 w-4 mr-2" />
+              Reset App
+            </Button>
+          </CacheClearDialog>
+          
+          {canCreateProject() && <Button size="lg" className="sm:w-auto w-full bg-green-500 hover:bg-green-400 text-gray-950">
+              <Plus className="h-4 w-4 mr-2" />
+              New Project
+            </Button>}
+        </div>
       </div>
 
       {/* Shift Card - Only for workers */}

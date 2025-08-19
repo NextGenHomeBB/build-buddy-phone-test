@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { TaskCard } from '@/components/TaskCard';
 import { SearchChip } from '@/components/ui/SearchChip';
 import { WorkerQuickTasks } from '@/components/WorkerQuickTasks';
+import { CacheClearDialog } from '@/components/CacheClearDialog';
+import { SyncStatusDisplay } from '@/components/SyncStatusDisplay';
 import { useToast } from '@/hooks/use-toast';
 import { useTasks, useTaskStats, Task, TaskFilters } from '@/hooks/useTasks';
 import { 
@@ -16,7 +18,8 @@ import {
   AlertCircle, 
   Play, 
   Target,
-  Zap
+  Zap,
+  Settings
 } from 'lucide-react';
 import { isPast } from 'date-fns';
 
@@ -105,6 +108,11 @@ export default function MyTasks() {
   return (
     <AppLayout>
       <div className="h-[100dvh] flex flex-col bg-background">
+        {/* Sync Status */}
+        <div className="px-4 pt-3">
+          <SyncStatusDisplay />
+        </div>
+        
         {/* Sticky header */}
         <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b px-4 pt-3 pb-2">
           <div className="flex items-center justify-between mb-2">
@@ -114,16 +122,25 @@ export default function MyTasks() {
                 Track your assigned tasks and progress
               </p>
             </div>
-            <WorkerQuickTasks>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="w-10 h-10 bg-primary/10 hover:bg-primary/20 rounded-lg"
-                title="View My Quick Assigned Tasks"
-              >
-                <Zap className="w-5 h-5 text-primary" />
-              </Button>
-            </WorkerQuickTasks>
+            <div className="flex items-center gap-2">
+              <CacheClearDialog>
+                <Button variant="outline" size="sm">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Reset
+                </Button>
+              </CacheClearDialog>
+              
+              <WorkerQuickTasks>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="w-10 h-10 bg-primary/10 hover:bg-primary/20 rounded-lg"
+                  title="View My Quick Assigned Tasks"
+                >
+                  <Zap className="w-5 h-5 text-primary" />
+                </Button>
+              </WorkerQuickTasks>
+            </div>
           </div>
 
           {/* Search + filter chips */}

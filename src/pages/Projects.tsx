@@ -14,6 +14,9 @@ import { QuickAssignDrawer } from '@/components/QuickAssignDrawer';
 import { useRoleAccess } from '@/hooks/useRoleAccess';
 import { useAccessibleProjects, useDeleteProject } from '@/hooks/useProjects';
 import { useToast } from '@/hooks/use-toast';
+import { CacheClearDialog } from '@/components/CacheClearDialog';
+import { SyncStatusDisplay } from '@/components/SyncStatusDisplay';
+import { Settings } from 'lucide-react';
 export default function Projects() {
   const {
     data: projects,
@@ -91,6 +94,9 @@ export default function Projects() {
   }
   return <AppLayout>
       <div className="space-y-6">
+        {/* Sync Status */}
+        <SyncStatusDisplay />
+        
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -100,12 +106,21 @@ export default function Projects() {
             </p>
           </div>
           
-          {canCreateProject() && <CreateProjectDialog>
-              <Button size="lg" className="bg-green-500 hover:bg-green-400 text-slate-950">
-                <Plus className="h-4 w-4 mr-2" />
-                New Project
+          <div className="flex items-center gap-2">
+            <CacheClearDialog>
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                Reset App
               </Button>
-            </CreateProjectDialog>}
+            </CacheClearDialog>
+            
+            {canCreateProject() && <CreateProjectDialog>
+                <Button size="lg" className="bg-green-500 hover:bg-green-400 text-slate-950">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Project
+                </Button>
+              </CreateProjectDialog>}
+          </div>
         </div>
 
         {/* Filters */}
