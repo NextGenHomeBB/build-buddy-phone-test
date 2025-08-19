@@ -92,16 +92,33 @@ export const useUserManagement = () => {
       await userService.deleteUser(userId);
       toast({
         title: "User Deleted",
-        description: "User has been successfully deleted.",
+        description: "User has been successfully deleted from the system.",
       });
       loadUsers(); // Refresh the list
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete user:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete user. Please try again.",
-        variant: "destructive",
-      });
+      const errorMessage = error?.message || "Failed to delete user. Please try again.";
+      
+      // Handle specific error cases
+      if (errorMessage.includes('foreign key')) {
+        toast({
+          title: "Cannot Delete User",
+          description: "This user has associated data that must be removed first.",
+          variant: "destructive",
+        });
+      } else if (errorMessage.includes('permission') || errorMessage.includes('admin')) {
+        toast({
+          title: "Permission Denied",
+          description: "Only administrators can delete users.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     }
   };
 

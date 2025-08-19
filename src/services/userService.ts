@@ -64,13 +64,19 @@ export const userService = {
     return data;
   },
 
-  async deleteUser(userId: string) {
-    const { error } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('user_id', userId);
+  async deleteUser(userId: string): Promise<void> {
+    const { data, error } = await supabase.rpc('delete_user_profile', {
+      target_user_id: userId
+    });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Delete user error:', error);
+      throw new Error(error.message || 'Failed to delete user');
+    }
+    
+    if (!data) {
+      throw new Error('User not found or could not be deleted');
+    }
   },
 
   async getUserStats() {

@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -450,10 +450,88 @@ export type Database = {
         }
         Relationships: []
       }
+      personal_task_lists: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          icon: string | null
+          id: string
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      personal_tasks: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          is_completed: boolean | null
+          list_id: string | null
+          priority: number | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_completed?: boolean | null
+          list_id?: string | null
+          priority?: number | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_completed?: boolean | null
+          list_id?: string | null
+          priority?: number | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_tasks_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "personal_task_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           auth_user_id: string | null
           avatar_url: string | null
+          company: string | null
           created_at: string
           id: string
           is_placeholder: boolean | null
@@ -466,6 +544,7 @@ export type Database = {
         Insert: {
           auth_user_id?: string | null
           avatar_url?: string | null
+          company?: string | null
           created_at?: string
           id?: string
           is_placeholder?: boolean | null
@@ -478,6 +557,7 @@ export type Database = {
         Update: {
           auth_user_id?: string | null
           avatar_url?: string | null
+          company?: string | null
           created_at?: string
           id?: string
           is_placeholder?: boolean | null
@@ -914,6 +994,62 @@ export type Database = {
           },
         ]
       }
+      task_relationships: {
+        Row: {
+          child_task_id: string
+          created_at: string
+          id: string
+          parent_task_id: string
+          relationship_type: string
+          updated_at: string
+        }
+        Insert: {
+          child_task_id: string
+          created_at?: string
+          id?: string
+          parent_task_id: string
+          relationship_type?: string
+          updated_at?: string
+        }
+        Update: {
+          child_task_id?: string
+          created_at?: string
+          id?: string
+          parent_task_id?: string
+          relationship_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_relationships_child_task_fkey"
+            columns: ["child_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_relationships_child_task_fkey"
+            columns: ["child_task_id"]
+            isOneToOne: false
+            referencedRelation: "user_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_relationships_parent_task_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_relationships_parent_task_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "user_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_workers: {
         Row: {
           created_at: string | null
@@ -1120,47 +1256,143 @@ export type Database = {
           },
         ]
       }
+      time_tracking_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          default_hourly_rate: number | null
+          id: string
+          is_billable: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          default_hourly_rate?: number | null
+          id?: string
+          is_billable?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          default_hourly_rate?: number | null
+          id?: string
+          is_billable?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      timesheet_breaks: {
+        Row: {
+          break_type: string | null
+          created_at: string
+          end_time: string | null
+          id: string
+          notes: string | null
+          start_time: string
+          timesheet_id: string
+        }
+        Insert: {
+          break_type?: string | null
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          start_time: string
+          timesheet_id: string
+        }
+        Update: {
+          break_type?: string | null
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          start_time?: string
+          timesheet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timesheet_breaks_timesheet_id_fkey"
+            columns: ["timesheet_id"]
+            isOneToOne: false
+            referencedRelation: "timesheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       timesheets: {
         Row: {
           approved: boolean | null
+          break_duration_minutes: number | null
+          category_id: string | null
           created_at: string | null
           duration_generated: number | null
           end_time: string | null
+          hourly_rate: number | null
           id: string
+          is_billable: boolean | null
+          notes: string | null
           phase_id: string | null
           project_id: string | null
           schedule_item_id: string | null
           start_time: string
+          tags: string[] | null
+          total_earnings: number | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           approved?: boolean | null
+          break_duration_minutes?: number | null
+          category_id?: string | null
           created_at?: string | null
           duration_generated?: number | null
           end_time?: string | null
+          hourly_rate?: number | null
           id?: string
+          is_billable?: boolean | null
+          notes?: string | null
           phase_id?: string | null
           project_id?: string | null
           schedule_item_id?: string | null
           start_time?: string
+          tags?: string[] | null
+          total_earnings?: number | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           approved?: boolean | null
+          break_duration_minutes?: number | null
+          category_id?: string | null
           created_at?: string | null
           duration_generated?: number | null
           end_time?: string | null
+          hourly_rate?: number | null
           id?: string
+          is_billable?: boolean | null
+          notes?: string | null
           phase_id?: string | null
           project_id?: string | null
           schedule_item_id?: string | null
           start_time?: string
+          tags?: string[] | null
+          total_earnings?: number | null
           updated_at?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "timesheets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "time_tracking_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "timesheets_phase_id_fkey"
             columns: ["phase_id"]
@@ -1348,10 +1580,14 @@ export type Database = {
         Args: { work_date: string }
         Returns: undefined
       }
+      calculate_break_duration: {
+        Args: { timesheet_id_param: string }
+        Returns: number
+      }
       create_placeholder_user: {
         Args: {
-          user_name: string
           user_email: string
+          user_name: string
           user_role?: Database["public"]["Enums"]["user_role"]
         }
         Returns: string
@@ -1363,6 +1599,10 @@ export type Database = {
           user_role?: Database["public"]["Enums"]["user_role"]
         }
         Returns: string
+      }
+      delete_user_profile: {
+        Args: { target_user_id: string }
+        Returns: boolean
       }
       estimate_phase_costs: {
         Args: { p_phase_id: string }
@@ -1385,7 +1625,7 @@ export type Database = {
         Returns: Json
       }
       link_placeholder_to_auth_user: {
-        Args: { placeholder_name: string; auth_user_id: string }
+        Args: { auth_user_id: string; placeholder_name: string }
         Returns: boolean
       }
       sync_project_phase_tasks_with_default: {
@@ -1405,13 +1645,13 @@ export type Database = {
         Returns: undefined
       }
       update_remaining_budget: {
-        Args: { project_id_param: string; amount_delta: number }
+        Args: { amount_delta: number; project_id_param: string }
         Returns: undefined
       }
       update_user_role: {
         Args: {
-          target_user_id: string
           new_role: Database["public"]["Enums"]["user_role"]
+          target_user_id: string
         }
         Returns: boolean
       }
