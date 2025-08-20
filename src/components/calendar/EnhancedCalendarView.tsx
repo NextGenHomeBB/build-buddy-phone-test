@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useEnhancedCalendar, type CalendarView } from '@/hooks/useEnhancedCalendar';
 import { CalendarEvent } from '@/services/calendarDataService';
 import { CalendarEventDetailDialog } from './CalendarEventDetailDialog';
+import { RealtimeCalendarSync } from './RealtimeCalendarSync';
 import { DailyView } from './DailyView';
 import { WeeklyView } from './WeeklyView';
 import { MonthlyView } from './MonthlyView';
@@ -51,6 +52,14 @@ export function EnhancedCalendarView({ className }: EnhancedCalendarViewProps) {
 
   const handleCloseDialog = () => {
     setSelectedEvent(null);
+  };
+
+  const handleScheduleUpdate = () => {
+    refetch();
+  };
+
+  const handleTaskUpdate = () => {
+    refetch();
   };
 
   // Filter events based on selected filters
@@ -223,6 +232,11 @@ export function EnhancedCalendarView({ className }: EnhancedCalendarViewProps) {
         event={selectedEvent}
         isOpen={!!selectedEvent}
         onClose={handleCloseDialog}
+      />
+
+      <RealtimeCalendarSync 
+        onScheduleUpdate={handleScheduleUpdate}
+        onTaskUpdate={handleTaskUpdate}
       />
     </div>
   );

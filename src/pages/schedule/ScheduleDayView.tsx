@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EnhancedCalendarView } from '@/components/calendar/EnhancedCalendarView';
+import { WorkerCalendarView } from '@/components/calendar/WorkerCalendarView';
+import { useRoleAccess } from '@/hooks/useRoleAccess';
 
 export default function ScheduleDayView() {
   const navigate = useNavigate();
+  const { isWorker } = useRoleAccess();
 
   return (
     <div className="h-full flex flex-col">
@@ -30,7 +33,11 @@ export default function ScheduleDayView() {
 
       {/* Enhanced Calendar */}
       <div className="flex-1 overflow-hidden">
-        <EnhancedCalendarView />
+        {isWorker ? (
+          <WorkerCalendarView />
+        ) : (
+          <EnhancedCalendarView />
+        )}
       </div>
     </div>
   );
