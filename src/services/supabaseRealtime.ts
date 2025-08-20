@@ -3,7 +3,7 @@ import { SyncRecord } from './idbClient';
 
 export class SupabaseRealtime {
   private channels: Map<string, any> = new Map();
-  private readonly syncTables = ['projects', 'phases', 'tasks', 'phaseChecks', 'subcontractors'];
+  private readonly syncTables = ['projects', 'project_phases', 'tasks', 'profiles', 'user_project_role', 'timesheets', 'labour_entries', 'material_costs', 'checklist_items', 'task_comments'];
   
   constructor(
     private onRealtimeChange: (table: string, payload: any) => Promise<void>

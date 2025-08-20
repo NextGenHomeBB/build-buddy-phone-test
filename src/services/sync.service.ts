@@ -7,7 +7,7 @@ class SyncService {
   private isOnline = navigator.onLine;
   private syncInterval: number | null = null;
   private initialized = false;
-  private readonly syncTables = ['projects', 'phases', 'tasks', 'phaseChecks', 'subcontractors'];
+  public readonly syncTables = ['projects', 'project_phases', 'tasks', 'profiles', 'user_project_role', 'timesheets', 'labour_entries', 'material_costs', 'checklist_items', 'task_comments'];
 
   constructor() {
     this.supabaseRealtime = new SupabaseRealtime(this.handleRealtimeChange.bind(this));
@@ -214,9 +214,8 @@ const syncService = new SyncService();
 export const startSync = async () => {
   await syncService.init();
   
-  // Start observing sync tables
-  const syncTables = ['projects', 'project_phases', 'tasks', 'profiles'];
-  syncTables.forEach(table => {
+  // Start observing all sync tables
+  syncService.syncTables.forEach(table => {
     syncService.observeSupabase(table);
   });
 };

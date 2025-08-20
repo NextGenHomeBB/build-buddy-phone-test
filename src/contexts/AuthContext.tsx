@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { startSync } from '@/services/sync.service';
 
 interface AuthContextType {
   user: User | null;
@@ -83,6 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           setTimeout(() => {
             fetchProfile(session.user.id);
+            // Initialize sync service when user logs in
+            startSync().catch(err => console.error('Failed to start sync:', err));
           }, 0);
         } else {
           setProfile(null);
