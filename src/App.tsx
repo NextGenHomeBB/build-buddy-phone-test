@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { RequireAccess } from "@/components/auth/RequireAccess";
+import { PWAUpdatePrompt } from "@/components/PWAUpdatePrompt";
 import { Suspense, lazy } from "react";
 
 // Lazy load pages
@@ -120,6 +121,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <PWAUpdatePrompt />
         <BrowserRouter>
           <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
             <Routes>
