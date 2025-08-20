@@ -1,14 +1,16 @@
 import { format } from 'date-fns';
 import { CalendarEventCard } from './CalendarEventCard';
 import { type CalendarDay } from '@/hooks/useEnhancedCalendar';
+import { type CalendarEvent } from '@/services/calendarDataService';
 import { cn } from '@/lib/utils';
 
 interface MonthlyViewProps {
   calendarDays: CalendarDay[];
+  onEventClick?: (event: CalendarEvent) => void;
   className?: string;
 }
 
-export function MonthlyView({ calendarDays, className }: MonthlyViewProps) {
+export function MonthlyView({ calendarDays, onEventClick, className }: MonthlyViewProps) {
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   
   // Group days into weeks
@@ -60,11 +62,12 @@ export function MonthlyView({ calendarDays, className }: MonthlyViewProps) {
                 {/* Events */}
                 <div className="flex-1 space-y-1">
                   {day.events.slice(0, 3).map((event) => (
-                    <CalendarEventCard
+                     <CalendarEventCard
                       key={event.id}
                       event={event}
                       compact
                       showTime={false}
+                      onClick={onEventClick}
                       className="cursor-pointer hover:shadow-sm transition-shadow"
                     />
                   ))}

@@ -1,14 +1,16 @@
 import { format } from 'date-fns';
 import { CalendarEventCard } from './CalendarEventCard';
 import { type CalendarDay } from '@/hooks/useEnhancedCalendar';
+import { type CalendarEvent } from '@/services/calendarDataService';
 import { cn } from '@/lib/utils';
 
 interface WeeklyViewProps {
   weekDays: CalendarDay[];
+  onEventClick?: (event: CalendarEvent) => void;
   className?: string;
 }
 
-export function WeeklyView({ weekDays, className }: WeeklyViewProps) {
+export function WeeklyView({ weekDays, onEventClick, className }: WeeklyViewProps) {
   const timeSlots = Array.from({ length: 24 }, (_, i) => i);
 
   return (
@@ -72,6 +74,7 @@ export function WeeklyView({ weekDays, className }: WeeklyViewProps) {
                           event={event}
                           compact
                           showTime={false}
+                          onClick={onEventClick}
                           className="h-full"
                         />
                       </div>
@@ -91,6 +94,7 @@ export function WeeklyView({ weekDays, className }: WeeklyViewProps) {
                           event={event}
                           compact
                           showTime={false}
+                          onClick={onEventClick}
                           className="mb-1"
                         />
                       </div>

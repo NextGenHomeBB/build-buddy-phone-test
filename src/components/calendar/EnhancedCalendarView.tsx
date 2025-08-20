@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEnhancedCalendar, type CalendarView } from '@/hooks/useEnhancedCalendar';
+import { CalendarEvent } from '@/services/calendarDataService';
+import { CalendarEventDetailDialog } from './CalendarEventDetailDialog';
 import { DailyView } from './DailyView';
 import { WeeklyView } from './WeeklyView';
 import { MonthlyView } from './MonthlyView';
@@ -19,6 +21,7 @@ interface EnhancedCalendarViewProps {
 export function EnhancedCalendarView({ className }: EnhancedCalendarViewProps) {
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   
   const {
     currentDate,
@@ -41,6 +44,14 @@ export function EnhancedCalendarView({ className }: EnhancedCalendarViewProps) {
   } = useEnhancedCalendar();
 
   const { isAdmin, isManager } = useRoleAccess();
+
+  const handleEventClick = (event: CalendarEvent) => {
+    setSelectedEvent(event);
+  };
+
+  const handleCloseDialog = () => {
+    setSelectedEvent(null);
+  };
 
   // Filter events based on selected filters
   const filteredEvents = events.filter(event => {
@@ -175,6 +186,7 @@ export function EnhancedCalendarView({ className }: EnhancedCalendarViewProps) {
               if (selectedType !== 'all' && event.type !== selectedType) return false;
               return true;
             })} 
+            onEventClick={handleEventClick}
           />
         </TabsContent>
 
@@ -188,6 +200,7 @@ export function EnhancedCalendarView({ className }: EnhancedCalendarViewProps) {
                 return true;
               })
             }))} 
+            onEventClick={handleEventClick}
           />
         </TabsContent>
 
@@ -201,9 +214,16 @@ export function EnhancedCalendarView({ className }: EnhancedCalendarViewProps) {
                 return true;
               })
             }))} 
+            onEventClick={handleEventClick}
           />
         </TabsContent>
       </Tabs>
+
+      <CalendarEventDetailDialog
+        event={selectedEvent}
+        isOpen={!!selectedEvent}
+        onClose={handleCloseDialog}
+      />
     </div>
   );
 }

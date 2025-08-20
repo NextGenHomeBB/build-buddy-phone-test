@@ -7,10 +7,11 @@ import { cn } from '@/lib/utils';
 interface DailyViewProps {
   date: Date;
   events: CalendarEvent[];
+  onEventClick?: (event: CalendarEvent) => void;
   className?: string;
 }
 
-export function DailyView({ date, events, className }: DailyViewProps) {
+export function DailyView({ date, events, onEventClick, className }: DailyViewProps) {
   const timeSlots = Array.from({ length: 24 }, (_, i) => i);
   
   // Group events by time
@@ -49,10 +50,11 @@ export function DailyView({ date, events, className }: DailyViewProps) {
           <h3 className="text-sm font-medium mb-2">All Day</h3>
           <div className="space-y-2">
             {allDayEvents.map((event) => (
-              <CalendarEventCard
+               <CalendarEventCard
                 key={event.id}
                 event={event}
                 showTime={false}
+                onClick={onEventClick}
               />
             ))}
           </div>
@@ -75,6 +77,7 @@ export function DailyView({ date, events, className }: DailyViewProps) {
                   <CalendarEventCard
                     key={event.id}
                     event={event}
+                    onClick={onEventClick}
                     className="mb-2"
                   />
                 ))}

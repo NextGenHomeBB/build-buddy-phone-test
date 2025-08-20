@@ -11,9 +11,16 @@ interface CalendarEventCardProps {
   compact?: boolean;
   showTime?: boolean;
   className?: string;
+  onClick?: (event: CalendarEvent) => void;
 }
 
-export function CalendarEventCard({ event, compact = false, showTime = true, className }: CalendarEventCardProps) {
+export function CalendarEventCard({ 
+  event, 
+  compact = false, 
+  showTime = true, 
+  className,
+  onClick 
+}: CalendarEventCardProps) {
   const getTypeIcon = () => {
     switch (event.type) {
       case 'schedule':
@@ -85,10 +92,11 @@ export function CalendarEventCard({ event, compact = false, showTime = true, cla
     return (
       <div 
         className={cn(
-          "text-xs p-1 rounded border-l-2 bg-background/80 backdrop-blur-sm",
+          "text-xs p-1 rounded border-l-2 bg-background/80 backdrop-blur-sm cursor-pointer hover:bg-accent/50 transition-colors",
           className
         )}
         style={{ borderLeftColor: event.color }}
+        onClick={() => onClick?.(event)}
       >
         <div className="flex items-center gap-1 mb-1">
           {getTypeIcon()}
@@ -120,7 +128,10 @@ export function CalendarEventCard({ event, compact = false, showTime = true, cla
   }
 
   return (
-    <Card className={cn("mb-2", className)}>
+    <Card 
+      className={cn("mb-2 cursor-pointer hover:shadow-md transition-shadow", className)}
+      onClick={() => onClick?.(event)}
+    >
       <CardContent className="p-3">
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-2">
