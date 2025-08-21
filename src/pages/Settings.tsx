@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { SyncStatusDisplay } from '@/components/SyncStatusDisplay';
 import { useAuth } from '@/contexts/AuthContext';
-import { Moon, Sun, Globe, LogOut, Settings as SettingsIcon } from 'lucide-react';
+import { Moon, Sun, Globe, LogOut, Settings as SettingsIcon, Database } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export default function Settings() {
@@ -63,6 +65,22 @@ export default function Settings() {
             Manage your app preferences
           </p>
         </div>
+
+        {/* Sync Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              Data Synchronization
+            </CardTitle>
+            <CardDescription>
+              Monitor your app's sync status and connectivity
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SyncStatusDisplay />
+          </CardContent>
+        </Card>
 
         {/* Appearance */}
         <Card>
