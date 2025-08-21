@@ -19,15 +19,15 @@ export interface OutboxRecord {
 
 export class IDBClient {
   private db: IDBPDatabase | null = null;
-  private readonly syncTables = ['projects', 'phases', 'tasks', 'phaseChecks', 'subcontractors'];
+  private readonly syncTables = ['projects', 'project_phases', 'tasks', 'profiles', 'user_project_role', 'timesheets', 'labour_entries', 'material_costs', 'checklist_items', 'task_comments', 'schedules', 'schedule_items', 'schedule_item_workers', 'task_workers'];
 
   async init() {
     try {
-      // Open IndexedDB with simpler approach
-      this.db = await openDB('construction-sync', 1, {
-        upgrade(db) {
+      // Open IndexedDB with version 2 to handle schema updates
+      this.db = await openDB('construction-sync', 2, {
+        upgrade(db, oldVersion) {
           // Create object stores for each sync table
-          const syncTables = ['projects', 'phases', 'tasks', 'phaseChecks', 'subcontractors'];
+          const syncTables = ['projects', 'project_phases', 'tasks', 'profiles', 'user_project_role', 'timesheets', 'labour_entries', 'material_costs', 'checklist_items', 'task_comments', 'schedules', 'schedule_items', 'schedule_item_workers', 'task_workers'];
           
           syncTables.forEach(tableName => {
             if (!db.objectStoreNames.contains(tableName)) {

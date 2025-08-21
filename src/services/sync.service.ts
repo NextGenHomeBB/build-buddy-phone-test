@@ -7,7 +7,9 @@ class SyncService {
   private isOnline = navigator.onLine;
   private syncInterval: number | null = null;
   private initialized = false;
-  public readonly syncTables = ['projects', 'project_phases', 'tasks', 'profiles', 'user_project_role', 'timesheets', 'labour_entries', 'material_costs', 'checklist_items', 'task_comments'];
+  public readonly syncTables = ['projects', 'project_phases', 'tasks', 'profiles', 'user_project_role', 'timesheets', 'labour_entries', 'material_costs', 'checklist_items', 'task_comments', 'schedules', 'schedule_items', 'schedule_item_workers', 'task_workers'];
+  private retryAttempts = new Map<string, number>();
+  private maxRetries = 3;
 
   constructor() {
     this.supabaseRealtime = new SupabaseRealtime(this.handleRealtimeChange.bind(this));
@@ -139,17 +141,39 @@ class SyncService {
       const outboxItems = await this.idbClient.getAllOutboxItems();
 
       for (const item of outboxItems) {
+        const retryCount = this.retryAttempts.get(item.id) || 0;
+        
+        if (retryCount >= this.maxRetries) {
+          console.warn(`Max retries exceeded for item ${item.id}, removing from outbox`);
+          await this.idbClient.removeFromOutbox(item.id);
+          this.retryAttempts.delete(item.id);
+          continue;
+        }
+
         try {
           await this.supabaseRealtime.syncOutboxItem(item.table, item.operation, item.data);
           
           // Remove from outbox after successful sync
           await this.idbClient.removeFromOutbox(item.id);
+          this.retryAttempts.delete(item.id);
 
         } catch (error) {
-          console.error(`Failed to sync outbox item ${item.id}:`, error);
-          // Keep item in outbox for retry
+          console.error(`Failed to sync outbox item ${item.id} (attempt ${retryCount + 1}):`, error);
+          this.retryAttempts.set(item.id, retryCount + 1);
+          
+          // Exponential backoff for retries
+          const backoffDelay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s...
+          setTimeout(() => {
+            if (this.isOnline) this.syncOutbox();
+          }, backoffDelay);
         }
       }
+      
+      // Emit sync completion event
+      window.dispatchEvent(new CustomEvent('sync-complete', {
+        detail: { syncedItems: outboxItems.length }
+      }));
+      
     } catch (error) {
       console.error('Error syncing outbox:', error);
     }

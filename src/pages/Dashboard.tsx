@@ -8,6 +8,7 @@ import { Plus, Search } from "lucide-react";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { useAccessibleProjects } from "@/hooks/useProjects";
 import { CacheClearDialog } from "@/components/CacheClearDialog";
+import { EnhancedSyncStatus } from "@/components/EnhancedSyncStatus";
 import { Settings } from "lucide-react";
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,6 +51,9 @@ export default function Dashboard() {
       </div>;
   }
   return <div className="space-y-6 lg:space-y-8">
+      {/* Sync Status */}
+      <EnhancedSyncStatus />
+      
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
