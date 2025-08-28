@@ -1,11 +1,14 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, FolderOpen, CheckSquare, BarChart3 } from "lucide-react";
+import { Clock, Home, FolderOpen, CheckSquare, BarChart3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTasks";
+import { TimeTrackingWidget } from "@/components/mobile/TimeTrackingWidget";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function MobileTabBar() {
   const location = useLocation();
+  const isMobile = useIsMobile();
   const { data: projects } = useProjects();
   const { data: tasks } = useTasks();
   
@@ -32,6 +35,12 @@ export function MobileTabBar() {
       badge: taskCount > 0 ? taskCount.toString() : null,
     },
     {
+      title: "Time",
+      url: "/time-tracking",
+      icon: Clock,
+      badge: null,
+    },
+    {
       title: "Reports",
       url: "/reports",
       icon: BarChart3,
@@ -43,6 +52,13 @@ export function MobileTabBar() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-t border-border/50 shadow-lg">
+      {/* Time Tracking Widget - Only show on mobile */}
+      {isMobile && (
+        <div className="px-4 py-2 border-b border-border/30">
+          <TimeTrackingWidget compact />
+        </div>
+      )}
+      
       <div className="flex items-center justify-around py-1 px-2 safe-area-bottom">
         {tabItems.map((item) => (
           <NavLink

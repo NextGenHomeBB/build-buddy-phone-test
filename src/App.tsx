@@ -17,6 +17,7 @@ const ProjectTeamTab = lazy(() => import("./pages/ProjectTeamTab"));
 const PhaseDetail = lazy(() => import("./pages/PhaseDetail"));
 const MyTasks = lazy(() => import("./pages/MyTasks"));
 const TimeSheet = lazy(() => import("./pages/TimeSheet"));
+const EnhancedTimeTracking = lazy(() => import("./pages/EnhancedTimeTracking"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Reports = lazy(() => import("./pages/Reports"));
@@ -151,6 +152,7 @@ const App = () => (
               <Route path="/my-tasks" element={<RequireAuth><MyTasks /></RequireAuth>} />
               <Route path="/shift" element={<RequireAuth><ShiftScreen /></RequireAuth>} />
               <Route path="/time-sheet" element={<RequireAuth><TimeSheet /></RequireAuth>} />
+              <Route path="/time-tracking" element={<RequireAuth><EnhancedTimeTracking /></RequireAuth>} />
               <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
               <Route path="/settings" element={<RequireAuth roles={['admin', 'manager']}><Settings /></RequireAuth>} />
               <Route path="/reports" element={<RequireAuth roles={['admin', 'manager']}><Reports /></RequireAuth>} />

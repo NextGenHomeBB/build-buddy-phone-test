@@ -1288,28 +1288,34 @@ export type Database = {
       }
       timesheet_breaks: {
         Row: {
+          break_reason: string | null
           break_type: string | null
           created_at: string
           end_time: string | null
           id: string
+          location: Json | null
           notes: string | null
           start_time: string
           timesheet_id: string
         }
         Insert: {
+          break_reason?: string | null
           break_type?: string | null
           created_at?: string
           end_time?: string | null
           id?: string
+          location?: Json | null
           notes?: string | null
           start_time: string
           timesheet_id: string
         }
         Update: {
+          break_reason?: string | null
           break_type?: string | null
           created_at?: string
           end_time?: string | null
           id?: string
+          location?: Json | null
           notes?: string | null
           start_time?: string
           timesheet_id?: string
@@ -1331,14 +1337,19 @@ export type Database = {
           category_id: string | null
           created_at: string | null
           duration_generated: number | null
+          end_location: Json | null
+          end_photo_url: string | null
           end_time: string | null
           hourly_rate: number | null
           id: string
           is_billable: boolean | null
+          location_verified: boolean | null
           notes: string | null
           phase_id: string | null
           project_id: string | null
           schedule_item_id: string | null
+          start_location: Json | null
+          start_photo_url: string | null
           start_time: string
           tags: string[] | null
           total_earnings: number | null
@@ -1351,14 +1362,19 @@ export type Database = {
           category_id?: string | null
           created_at?: string | null
           duration_generated?: number | null
+          end_location?: Json | null
+          end_photo_url?: string | null
           end_time?: string | null
           hourly_rate?: number | null
           id?: string
           is_billable?: boolean | null
+          location_verified?: boolean | null
           notes?: string | null
           phase_id?: string | null
           project_id?: string | null
           schedule_item_id?: string | null
+          start_location?: Json | null
+          start_photo_url?: string | null
           start_time?: string
           tags?: string[] | null
           total_earnings?: number | null
@@ -1371,14 +1387,19 @@ export type Database = {
           category_id?: string | null
           created_at?: string | null
           duration_generated?: number | null
+          end_location?: Json | null
+          end_photo_url?: string | null
           end_time?: string | null
           hourly_rate?: number | null
           id?: string
           is_billable?: boolean | null
+          location_verified?: boolean | null
           notes?: string | null
           phase_id?: string | null
           project_id?: string | null
           schedule_item_id?: string | null
+          start_location?: Json | null
+          start_photo_url?: string | null
           start_time?: string
           tags?: string[] | null
           total_earnings?: number | null
@@ -1514,6 +1535,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      worker_availability: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string | null
+          id: string
+          is_available: boolean
+          max_hours: number | null
+          start_time: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time?: string | null
+          id?: string
+          is_available?: boolean
+          max_hours?: number | null
+          start_time?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string | null
+          id?: string
+          is_available?: boolean
+          max_hours?: number | null
+          start_time?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      worker_date_availability: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          date: string
+          id: string
+          is_available: boolean
+          note: string | null
+          requested_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          date: string
+          id?: string
+          is_available?: boolean
+          note?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          is_available?: boolean
+          note?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -1652,6 +1751,14 @@ export type Database = {
         Args: {
           new_role: Database["public"]["Enums"]["user_role"]
           target_user_id: string
+        }
+        Returns: boolean
+      }
+      validate_shift_location: {
+        Args: {
+          current_location: Json
+          project_location?: Json
+          timesheet_id_param: string
         }
         Returns: boolean
       }
