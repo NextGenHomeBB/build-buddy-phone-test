@@ -228,6 +228,42 @@ export const useAdminTimeTracking = () => {
     }
   };
 
+  const finishShift = async (timesheetId: string) => {
+    try {
+      const { error } = await supabase
+        .from('timesheets')
+        .update({ 
+          end_time: new Date().toISOString()
+        })
+        .eq('id', timesheetId);
+
+      if (error) throw error;
+
+      // Remove from active shifts
+      setActiveShifts(prev => 
+        prev.filter(shift => shift.id !== timesheetId)
+      );
+
+      // Refresh timesheet entries for today to show the completed shift
+      const today = new Date().toISOString().split('T')[0];
+      if (selectedDate === today) {
+        fetchTimesheetEntries(selectedDate);
+      }
+
+      toast({
+        title: "Success",
+        description: "Shift finished successfully"
+      });
+    } catch (error) {
+      console.error('Error finishing shift:', error);
+      toast({
+        title: "Error",
+        description: "Failed to finish shift",
+        variant: "destructive"
+      });
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -268,6 +304,7 @@ export const useAdminTimeTracking = () => {
     setSelectedDate,
     approveTimesheet,
     rejectTimesheet,
+    finishShift,
     refetch: () => {
       fetchActiveShifts();
       fetchTimesheetEntries(selectedDate);

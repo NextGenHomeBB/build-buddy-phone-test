@@ -18,7 +18,8 @@ export function TimeTracking() {
     selectedDate,
     setSelectedDate,
     approveTimesheet,
-    rejectTimesheet
+    rejectTimesheet,
+    finishShift
   } = useAdminTimeTracking();
 
   const formatDuration = (hours?: number) => {
@@ -149,17 +150,18 @@ export function TimeTracking() {
                     No active shifts at the moment
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Worker</TableHead>
-                        <TableHead>Project</TableHead>
-                        <TableHead>Start Time</TableHead>
-                        <TableHead>Duration</TableHead>
-                        <TableHead>Location</TableHead>
-                        <TableHead>Photo</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Worker</TableHead>
+                          <TableHead>Project</TableHead>
+                          <TableHead>Start Time</TableHead>
+                          <TableHead>Duration</TableHead>
+                          <TableHead>Location</TableHead>
+                          <TableHead>Photo</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
                     <TableBody>
                       {activeShifts.map((shift) => (
                         <TableRow key={shift.id}>
@@ -197,6 +199,16 @@ export function TimeTracking() {
                             ) : (
                               <span className="text-muted-foreground">No photo</span>
                             )}
+                          </TableCell>
+                          <TableCell>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => finishShift(shift.id)}
+                            >
+                              <Clock className="w-4 h-4 mr-1" />
+                              Finish Shift
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
