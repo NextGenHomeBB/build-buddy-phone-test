@@ -6,11 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Clock, MapPin, Camera, Check, X, Users, Activity } from "lucide-react";
+import { Clock, MapPin, Camera, Check, X, Users, Activity, CalendarRange } from "lucide-react";
 import { useAdminTimeTracking } from "@/hooks/useAdminTimeTracking";
+import { useTimeTrackingAnalytics } from "@/hooks/useTimeTrackingAnalytics";
+import { EnhancedStatsCards } from "@/components/analytics/EnhancedStatsCards";
+import { TimeTrackingCharts } from "@/components/analytics/TimeTrackingCharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
 
 export function TimeTracking() {
+  const [dateRange, setDateRange] = useState({
+    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days ago
+    end: new Date().toISOString().split('T')[0] // today
+  });
+
   const {
     activeShifts,
     timesheetEntries,
@@ -20,6 +29,14 @@ export function TimeTracking() {
     approveTimesheet,
     rejectTimesheet
   } = useAdminTimeTracking();
+
+  const {
+    stats,
+    workerProductivity,
+    projectTimeAllocation,
+    dailyTrends,
+    isLoading: analyticsLoading
+  } = useTimeTrackingAnalytics(dateRange);
 
   const formatDuration = (hours?: number) => {
     if (!hours) return "0h 0m";
@@ -48,19 +65,19 @@ export function TimeTracking() {
     </Badge>
   );
 
-  if (isLoading) {
+  if (isLoading || analyticsLoading) {
     return (
       <AppLayout>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">Time Tracking</h1>
-              <p className="text-muted-foreground">Monitor worker shifts and approve timesheets</p>
+              <h1 className="text-2xl font-bold">Time Tracking Analytics</h1>
+              <p className="text-muted-foreground">Monitor worker performance and approve timesheets</p>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <Card key={i}>
                 <CardHeader>
                   <Skeleton className="h-4 w-20" />
@@ -70,14 +87,24 @@ export function TimeTracking() {
             ))}
           </div>
           
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-32" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-40 w-full" />
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-64 w-full" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-64 w-full" />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </AppLayout>
     );
@@ -86,50 +113,43 @@ export function TimeTracking() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        {/* Header with Date Range Selector */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Time Tracking</h1>
-            <p className="text-muted-foreground">Monitor worker shifts and approve timesheets</p>
+            <h1 className="text-2xl font-bold">Time Tracking Analytics</h1>
+            <p className="text-muted-foreground">Monitor worker performance and approve timesheets</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <CalendarRange className="h-4 w-4 text-muted-foreground" />
+            <Input
+              type="date"
+              value={dateRange.start}
+              onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+              className="w-auto"
+            />
+            <span className="text-muted-foreground">to</span>
+            <Input
+              type="date"
+              value={dateRange.end}
+              onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+              className="w-auto"
+            />
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Shifts</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{activeShifts.length}</div>
-              <p className="text-xs text-muted-foreground">Workers currently on shift</p>
-            </CardContent>
-          </Card>
+        {/* Enhanced Stats Cards */}
+        <EnhancedStatsCards 
+          stats={stats}
+          activeShiftsCount={activeShifts.length}
+          todayEntriesCount={timesheetEntries.length}
+        />
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Today's Entries</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{timesheetEntries.length}</div>
-              <p className="text-xs text-muted-foreground">Timesheet submissions</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Approval</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {timesheetEntries.filter(entry => !entry.approved).length}
-              </div>
-              <p className="text-xs text-muted-foreground">Awaiting approval</p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Analytics Charts */}
+        <TimeTrackingCharts 
+          dailyTrends={dailyTrends}
+          projectTimeAllocation={projectTimeAllocation}
+          workerProductivity={workerProductivity}
+        />
 
         <Tabs defaultValue="active" className="w-full">
           <TabsList>
