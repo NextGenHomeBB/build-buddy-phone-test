@@ -3,16 +3,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Clock, MapPin, Camera, Check, X, Users, Activity, CalendarRange } from "lucide-react";
 import { useAdminTimeTracking } from "@/hooks/useAdminTimeTracking";
 import { useTimeTrackingAnalytics } from "@/hooks/useTimeTrackingAnalytics";
+import { useBulkApprovalActions } from "@/hooks/useBulkApprovalActions";
 import { EnhancedStatsCards } from "@/components/analytics/EnhancedStatsCards";
 import { TimeTrackingCharts } from "@/components/analytics/TimeTrackingCharts";
+import { BulkApprovalBar } from "@/components/timesheet/BulkApprovalBar";
+import { ApprovalPriorityIndicator } from "@/components/timesheet/ApprovalPriorityIndicator";
+import { ApprovalNotificationSystem } from "@/components/timesheet/ApprovalNotificationSystem";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function TimeTracking() {
   const [dateRange, setDateRange] = useState({
@@ -27,7 +32,8 @@ export function TimeTracking() {
     selectedDate,
     setSelectedDate,
     approveTimesheet,
-    rejectTimesheet
+    rejectTimesheet,
+    refetch
   } = useAdminTimeTracking();
 
   const {
@@ -37,6 +43,28 @@ export function TimeTracking() {
     dailyTrends,
     isLoading: analyticsLoading
   } = useTimeTrackingAnalytics(dateRange);
+
+  const {
+    selectedTimesheets,
+    isProcessing,
+    toggleTimesheetSelection,
+    selectAllTimesheets,
+    clearSelection,
+    bulkApprove,
+    bulkReject,
+    applyAutomaticApproval,
+    getTimesheetPriority,
+    sortTimesheetsByPriority,
+    loadApprovalRules
+  } = useBulkApprovalActions();
+
+  // Load approval rules on component mount
+  useEffect(() => {
+    loadApprovalRules();
+  }, []);
+
+  // Sort timesheets by priority for approval queue
+  const sortedTimesheetEntries = sortTimesheetsByPriority(timesheetEntries);
 
   const formatDuration = (hours?: number) => {
     if (!hours) return "0h 0m";
@@ -113,27 +141,35 @@ export function TimeTracking() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Header with Date Range Selector */}
+        {/* Header with Date Range Selector and Notifications */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">Time Tracking Analytics</h1>
             <p className="text-muted-foreground">Monitor worker performance and approve timesheets</p>
           </div>
-          <div className="flex items-center gap-2">
-            <CalendarRange className="h-4 w-4 text-muted-foreground" />
-            <Input
-              type="date"
-              value={dateRange.start}
-              onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-              className="w-auto"
+          <div className="flex items-center gap-4">
+            <ApprovalNotificationSystem 
+              onNavigateToTimesheet={(id) => {
+                setSelectedDate(new Date().toISOString().split('T')[0]);
+                // Could scroll to specific timesheet or highlight it
+              }}
             />
-            <span className="text-muted-foreground">to</span>
-            <Input
-              type="date"
-              value={dateRange.end}
-              onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-              className="w-auto"
-            />
+            <div className="flex items-center gap-2">
+              <CalendarRange className="h-4 w-4 text-muted-foreground" />
+              <Input
+                type="date"
+                value={dateRange.start}
+                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                className="w-auto"
+              />
+              <span className="text-muted-foreground">to</span>
+              <Input
+                type="date"
+                value={dateRange.end}
+                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                className="w-auto"
+              />
+            </div>
           </div>
         </div>
 
@@ -235,16 +271,26 @@ export function TimeTracking() {
                     <CardTitle>Timesheet History</CardTitle>
                     <CardDescription>Review and approve worker timesheets</CardDescription>
                   </div>
-                  <Input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-auto"
-                  />
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => applyAutomaticApproval(sortedTimesheetEntries)}
+                      disabled={isProcessing}
+                    >
+                      Auto Process
+                    </Button>
+                    <Input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="w-auto"
+                    />
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
-                {timesheetEntries.length === 0 ? (
+                {sortedTimesheetEntries.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     No timesheet entries for this date
                   </div>
@@ -252,19 +298,52 @@ export function TimeTracking() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={selectedTimesheets.length === sortedTimesheetEntries.length}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                selectAllTimesheets(sortedTimesheetEntries.map(t => t.id));
+                              } else {
+                                clearSelection();
+                              }
+                            }}
+                          />
+                        </TableHead>
+                        <TableHead>Priority</TableHead>
                         <TableHead>Worker</TableHead>
                         <TableHead>Project</TableHead>
                         <TableHead>Start</TableHead>
                         <TableHead>End</TableHead>
                         <TableHead>Duration</TableHead>
+                        <TableHead>Earnings</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {timesheetEntries.map((entry) => (
-                        <TableRow key={entry.id}>
+                      {sortedTimesheetEntries.map((entry) => (
+                        <TableRow 
+                          key={entry.id}
+                          className={`group ${selectedTimesheets.includes(entry.id) ? 'bg-accent' : ''}`}
+                        >
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedTimesheets.includes(entry.id)}
+                              onCheckedChange={() => toggleTimesheetSelection(entry.id)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <ApprovalPriorityIndicator
+                              priority={getTimesheetPriority(entry)}
+                              timesheet={{
+                                duration_generated: entry.duration_generated,
+                                total_earnings: entry.total_earnings,
+                                location_verified: entry.location_verified
+                              }}
+                            />
+                          </TableCell>
                           <TableCell className="font-medium">{entry.user_name}</TableCell>
                           <TableCell>{entry.project_name || "No project"}</TableCell>
                           <TableCell>{formatTime(entry.start_time)}</TableCell>
@@ -273,6 +352,9 @@ export function TimeTracking() {
                           </TableCell>
                           <TableCell>
                             {formatDuration(entry.duration_generated)}
+                          </TableCell>
+                          <TableCell>
+                            €{(entry.total_earnings || 0).toFixed(0)}
                           </TableCell>
                           <TableCell>
                             {getVerificationBadge(entry.location_verified)}
@@ -348,6 +430,16 @@ export function TimeTracking() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Bulk Approval Bar */}
+        <BulkApprovalBar
+          selectedCount={selectedTimesheets.length}
+          isProcessing={isProcessing}
+          onBulkApprove={bulkApprove}
+          onBulkReject={bulkReject}
+          onClearSelection={clearSelection}
+          onAutoProcess={() => applyAutomaticApproval(sortedTimesheetEntries)}
+        />
       </div>
     </AppLayout>
   );
