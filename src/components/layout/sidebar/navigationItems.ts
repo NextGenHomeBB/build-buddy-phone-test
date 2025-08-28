@@ -1,4 +1,4 @@
-import { Home, FolderOpen, CheckSquare, BarChart3, Users, Settings, Shield, Package, MessageSquarePlus, CalendarDays, ClipboardList, DollarSign } from "lucide-react";
+import { Home, FolderOpen, CheckSquare, BarChart3, Users, Settings, Shield, Package, MessageSquarePlus, CalendarDays, ClipboardList, DollarSign, Clock } from "lucide-react";
 
 interface NavigationCounts {
   projectsCount: number;
@@ -75,6 +75,12 @@ export const getAdminItems = (counts: NavigationCounts) => [
     title: "Worker Costs",
     url: "/admin/worker-costs",
     icon: DollarSign,
+    badge: null,
+  },
+  {
+    title: "Time Tracking",
+    url: "/admin/time-tracking",
+    icon: Clock,
     badge: null,
   },
   {
