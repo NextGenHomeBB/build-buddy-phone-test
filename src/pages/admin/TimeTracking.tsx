@@ -6,17 +6,25 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Clock, MapPin, Camera, Check, X, Users, Activity } from "lucide-react";
+import { Clock, MapPin, Camera, Check, X, Users, Activity, BarChart3, TrendingUp } from "lucide-react";
 import { useAdminTimeTracking } from "@/hooks/useAdminTimeTracking";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UserAnalyticsChart } from "@/components/admin/UserAnalyticsChart";
+import { UserProgressCards } from "@/components/admin/UserProgressCards";
 
 export function TimeTracking() {
   const {
     activeShifts,
     timesheetEntries,
+    userAnalytics,
+    userProgress,
     isLoading,
     selectedDate,
     setSelectedDate,
+    selectedUser,
+    setSelectedUser,
+    viewPeriod,
+    setViewPeriod,
     approveTimesheet,
     rejectTimesheet,
     finishShift
@@ -133,9 +141,12 @@ export function TimeTracking() {
         </div>
 
         <Tabs defaultValue="active" className="w-full">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="active">Active Shifts</TabsTrigger>
-            <TabsTrigger value="history">Timesheet History</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="progress">Progress</TabsTrigger>
+            <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
 
           <TabsContent value="active" className="space-y-4">
@@ -336,6 +347,109 @@ export function TimeTracking() {
                     </TableBody>
                   </Table>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
+            {/* Period Selection */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      User Analytics
+                    </CardTitle>
+                    <CardDescription>Detailed analysis of user work patterns and productivity</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={viewPeriod === 'daily' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewPeriod('daily')}
+                    >
+                      Daily
+                    </Button>
+                    <Button
+                      variant={viewPeriod === 'weekly' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewPeriod('weekly')}
+                    >
+                      Weekly
+                    </Button>
+                    <Button
+                      variant={viewPeriod === 'monthly' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewPeriod('monthly')}
+                    >
+                      Monthly
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <UserAnalyticsChart
+                  analytics={userAnalytics}
+                  selectedUser={selectedUser}
+                  onUserChange={setSelectedUser}
+                  viewPeriod={viewPeriod}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="progress" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Progress Tracking
+                </CardTitle>
+                <CardDescription>Monitor individual and team progress towards goals</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <UserProgressCards
+                  userProgress={userProgress}
+                  selectedUser={selectedUser}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="reports" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Reports & Export</CardTitle>
+                <CardDescription>Generate detailed reports and export data</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Button variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+                    <Users className="h-6 w-6" />
+                    <span>Team Summary</span>
+                  </Button>
+                  <Button variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+                    <Clock className="h-6 w-6" />
+                    <span>Time Report</span>
+                  </Button>
+                  <Button variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+                    <Activity className="h-6 w-6" />
+                    <span>Activity Log</span>
+                  </Button>
+                  <Button variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+                    <BarChart3 className="h-6 w-6" />
+                    <span>Analytics Report</span>
+                  </Button>
+                  <Button variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+                    <TrendingUp className="h-6 w-6" />
+                    <span>Progress Report</span>
+                  </Button>
+                  <Button variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+                    <Camera className="h-6 w-6" />
+                    <span>Export Data</span>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
