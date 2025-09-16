@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,8 +12,17 @@ import { useAdminTimeTracking } from "@/hooks/useAdminTimeTracking";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserAnalyticsChart } from "@/components/admin/UserAnalyticsChart";
 import { UserProgressCards } from "@/components/admin/UserProgressCards";
+import { ReportDialog } from '@/components/admin/reports/ReportDialog';
+import { TeamSummaryReport } from '@/components/admin/reports/TeamSummaryReport';
+import { TimeReport } from '@/components/admin/reports/TimeReport';
+import { ActivityLogReport } from '@/components/admin/reports/ActivityLogReport';
+import { AnalyticsReport } from '@/components/admin/reports/AnalyticsReport';
+import { ProgressReport } from '@/components/admin/reports/ProgressReport';
+import { ExportDataReport } from '@/components/admin/reports/ExportDataReport';
 
 export function TimeTracking() {
+  const [reportDialog, setReportDialog] = useState<string | null>(null);
+  
   const {
     activeShifts,
     timesheetEntries,
@@ -425,27 +435,51 @@ export function TimeTracking() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <Button variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-24 flex flex-col items-center justify-center gap-2"
+                    onClick={() => setReportDialog('team-summary')}
+                  >
                     <Users className="h-6 w-6" />
                     <span>Team Summary</span>
                   </Button>
-                  <Button variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-24 flex flex-col items-center justify-center gap-2"
+                    onClick={() => setReportDialog('time-report')}
+                  >
                     <Clock className="h-6 w-6" />
                     <span>Time Report</span>
                   </Button>
-                  <Button variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-24 flex flex-col items-center justify-center gap-2"
+                    onClick={() => setReportDialog('activity-log')}
+                  >
                     <Activity className="h-6 w-6" />
                     <span>Activity Log</span>
                   </Button>
-                  <Button variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-24 flex flex-col items-center justify-center gap-2"
+                    onClick={() => setReportDialog('analytics')}
+                  >
                     <BarChart3 className="h-6 w-6" />
                     <span>Analytics Report</span>
                   </Button>
-                  <Button variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-24 flex flex-col items-center justify-center gap-2"
+                    onClick={() => setReportDialog('progress')}
+                  >
                     <TrendingUp className="h-6 w-6" />
                     <span>Progress Report</span>
                   </Button>
-                  <Button variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-24 flex flex-col items-center justify-center gap-2"
+                    onClick={() => setReportDialog('export')}
+                  >
                     <Camera className="h-6 w-6" />
                     <span>Export Data</span>
                   </Button>
@@ -454,6 +488,64 @@ export function TimeTracking() {
             </Card>
           </TabsContent>
         </Tabs>
+        
+        {/* Report Dialogs */}
+        <ReportDialog
+          open={reportDialog === 'team-summary'}
+          onOpenChange={(open) => !open && setReportDialog(null)}
+          title="Team Summary Report"
+        >
+          <TeamSummaryReport activeShifts={activeShifts} userAnalytics={userAnalytics} />
+        </ReportDialog>
+
+        <ReportDialog
+          open={reportDialog === 'time-report'}
+          onOpenChange={(open) => !open && setReportDialog(null)}
+          title="Time Report"
+        >
+          <TimeReport timesheetEntries={timesheetEntries} userAnalytics={userAnalytics} />
+        </ReportDialog>
+
+        <ReportDialog
+          open={reportDialog === 'activity-log'}
+          onOpenChange={(open) => !open && setReportDialog(null)}
+          title="Activity Log Report"
+        >
+          <ActivityLogReport timesheetEntries={timesheetEntries} activeShifts={activeShifts} />
+        </ReportDialog>
+
+        <ReportDialog
+          open={reportDialog === 'analytics'}
+          onOpenChange={(open) => !open && setReportDialog(null)}
+          title="Analytics Report"
+        >
+          <AnalyticsReport 
+            userAnalytics={userAnalytics} 
+            selectedUser={selectedUser} 
+            onUserChange={setSelectedUser} 
+            viewPeriod={viewPeriod} 
+          />
+        </ReportDialog>
+
+        <ReportDialog
+          open={reportDialog === 'progress'}
+          onOpenChange={(open) => !open && setReportDialog(null)}
+          title="Progress Report"
+        >
+          <ProgressReport userProgress={userProgress} />
+        </ReportDialog>
+
+        <ReportDialog
+          open={reportDialog === 'export'}
+          onOpenChange={(open) => !open && setReportDialog(null)}
+          title="Export Data"
+        >
+          <ExportDataReport 
+            timesheetEntries={timesheetEntries} 
+            userAnalytics={userAnalytics} 
+            activeShifts={activeShifts} 
+          />
+        </ReportDialog>
       </div>
     </AppLayout>
   );
