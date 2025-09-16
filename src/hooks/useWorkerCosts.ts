@@ -39,12 +39,16 @@ export interface WorkerRate {
 }
 
 export const useWorkerCosts = () => {
+  console.log('🎯 useWorkerCosts hook initialized');
+  
   const [workers, setWorkers] = useState<WorkerData[]>([]);
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
   const { toast } = useToast();
+
+  console.log('🔧 useWorkerCosts state initialized, about to define loadWorkers...');
 
   const loadWorkers = async () => {
     try {

@@ -34,6 +34,8 @@ import { WorkerCostsDashboard } from "@/components/admin/WorkerCostsDashboard";
 
 
 export function WorkerCosts() {
+  console.log('🏗️ WorkerCosts component rendering...');
+  
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isRateDialogOpen, setIsRateDialogOpen] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<any>(null);
@@ -46,6 +48,7 @@ export function WorkerCosts() {
   const [rateEffectiveDate, setRateEffectiveDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [rateNotes, setRateNotes] = useState<string>("");
   
+  console.log('🔄 About to call useWorkerCosts hook...');
   const {
     workers,
     payments,
@@ -59,6 +62,8 @@ export function WorkerCosts() {
     processPayment,
     createWorkerSkill,
   } = useWorkerCosts();
+
+  console.log('📊 Workers data from hook:', { workers, loading, workersCount: workers?.length });
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -229,11 +234,17 @@ export function WorkerCosts() {
                                 <SelectValue placeholder="Select worker" />
                               </SelectTrigger>
                               <SelectContent>
-                                {workers.map((worker) => (
-                                  <SelectItem key={worker.id} value={worker.id}>
-                                    {worker.name} - ${worker.hourlyRate}/hr
+                                {workers?.length > 0 ? (
+                                  workers.map((worker) => (
+                                    <SelectItem key={worker.id} value={worker.id}>
+                                      {worker.name} - ${worker.hourlyRate}/hr
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <SelectItem value="no-workers" disabled>
+                                    No workers available
                                   </SelectItem>
-                                ))}
+                                )}
                               </SelectContent>
                             </Select>
                           </div>
@@ -401,21 +412,27 @@ export function WorkerCosts() {
                         <DialogTitle>Process Payment</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="paymentWorker">Worker</Label>
-                          <Select value={selectedWorkerId} onValueChange={setSelectedWorkerId}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select worker" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {workers.map((worker) => (
-                                <SelectItem key={worker.id} value={worker.id}>
-                                  {worker.name} - ${worker.totalEarnings} earned
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                         <div>
+                           <Label htmlFor="paymentWorker">Worker</Label>
+                           <Select value={selectedWorkerId} onValueChange={setSelectedWorkerId}>
+                             <SelectTrigger>
+                               <SelectValue placeholder="Select worker" />
+                             </SelectTrigger>
+                             <SelectContent>
+                               {workers?.length > 0 ? (
+                                 workers.map((worker) => (
+                                   <SelectItem key={worker.id} value={worker.id}>
+                                     {worker.name} - ${worker.totalEarnings} earned
+                                   </SelectItem>
+                                 ))
+                               ) : (
+                                 <SelectItem value="no-workers" disabled>
+                                   No workers available
+                                 </SelectItem>
+                               )}
+                             </SelectContent>
+                           </Select>
+                         </div>
                         <div>
                           <Label htmlFor="amount">Amount ($)</Label>
                           <Input 
