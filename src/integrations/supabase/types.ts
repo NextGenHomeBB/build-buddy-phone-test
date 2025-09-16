@@ -450,6 +450,96 @@ export type Database = {
         }
         Relationships: []
       }
+      payroll_entries: {
+        Row: {
+          created_at: string
+          deductions: number
+          gross_pay: number
+          id: string
+          net_pay: number
+          notes: string | null
+          overtime_hours: number
+          overtime_rate: number
+          paid_date: string | null
+          payment_method: string | null
+          payroll_period_id: string
+          regular_hours: number
+          regular_rate: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deductions?: number
+          gross_pay?: number
+          id?: string
+          net_pay?: number
+          notes?: string | null
+          overtime_hours?: number
+          overtime_rate?: number
+          paid_date?: string | null
+          payment_method?: string | null
+          payroll_period_id: string
+          regular_hours?: number
+          regular_rate?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deductions?: number
+          gross_pay?: number
+          id?: string
+          net_pay?: number
+          notes?: string | null
+          overtime_hours?: number
+          overtime_rate?: number
+          paid_date?: string | null
+          payment_method?: string | null
+          payroll_period_id?: string
+          regular_hours?: number
+          regular_rate?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payroll_periods: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          end_date: string
+          id: string
+          name: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          end_date: string
+          id?: string
+          name: string
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       personal_task_lists: {
         Row: {
           color: string | null
@@ -991,6 +1081,80 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      task_materials: {
+        Row: {
+          cost_per_unit: number
+          created_at: string
+          id: string
+          material_id: string
+          planned_qty: number | null
+          project_id: string
+          quantity_needed: number
+          quantity_used: number
+          task_id: string
+          total_cost: number
+          updated_at: string
+          used_flag: boolean | null
+        }
+        Insert: {
+          cost_per_unit?: number
+          created_at?: string
+          id?: string
+          material_id: string
+          planned_qty?: number | null
+          project_id: string
+          quantity_needed?: number
+          quantity_used?: number
+          task_id: string
+          total_cost?: number
+          updated_at?: string
+          used_flag?: boolean | null
+        }
+        Update: {
+          cost_per_unit?: number
+          created_at?: string
+          id?: string
+          material_id?: string
+          planned_qty?: number | null
+          project_id?: string
+          quantity_needed?: number
+          quantity_used?: number
+          task_id?: string
+          total_cost?: number
+          updated_at?: string
+          used_flag?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_task_materials_material_id"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_task_materials_project_id"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_task_materials_task_id"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_task_materials_task_id"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "user_tasks"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1609,6 +1773,78 @@ export type Database = {
           note?: string | null
           requested_at?: string
           status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      worker_rates: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          effective_date: string
+          hourly_rate: number
+          id: string
+          notes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          effective_date?: string
+          hourly_rate?: number
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          effective_date?: string
+          hourly_rate?: number
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      worker_skills: {
+        Row: {
+          certification_date: string | null
+          certification_expiry: string | null
+          certified: boolean | null
+          created_at: string
+          id: string
+          skill_level: number
+          skill_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          certification_date?: string | null
+          certification_expiry?: string | null
+          certified?: boolean | null
+          created_at?: string
+          id?: string
+          skill_level?: number
+          skill_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          certification_date?: string | null
+          certification_expiry?: string | null
+          certified?: boolean | null
+          created_at?: string
+          id?: string
+          skill_level?: number
+          skill_name?: string
           updated_at?: string
           user_id?: string
         }

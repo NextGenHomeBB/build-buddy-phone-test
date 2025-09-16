@@ -13,6 +13,8 @@ export interface WorkerData {
   lastPayment: string;
   phone?: string;
   avatar_url?: string;
+  skills?: string[];
+  currentRateId?: string;
 }
 
 export interface PaymentData {
@@ -24,6 +26,16 @@ export interface PaymentData {
   status: string;
   paidDate: string | null;
   method: string;
+}
+
+export interface WorkerRate {
+  id: string;
+  userId: string;
+  hourlyRate: number;
+  effectiveDate: string;
+  notes?: string;
+  approvedBy?: string;
+  approvedAt?: string;
 }
 
 export const useWorkerCosts = () => {
@@ -46,6 +58,21 @@ export const useWorkerCosts = () => {
 
       if (profilesError) throw profilesError;
 
+      // Fetch current worker rates
+      const { data: ratesData, error: ratesError } = await supabase
+        .from('worker_rates')
+        .select('*')
+        .order('effective_date', { ascending: false });
+
+      if (ratesError) throw ratesError;
+
+      // Fetch worker skills
+      const { data: skillsData, error: skillsError } = await supabase
+        .from('worker_skills')
+        .select('user_id, skill_name, skill_level, certified');
+
+      if (skillsError) throw skillsError;
+
       // Fetch labour entries for the current month to calculate hours and earnings
       const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
       
@@ -53,17 +80,42 @@ export const useWorkerCosts = () => {
         .from('labour_entries')
         .select('user_id, total_hours, total_cost, created_at')
         .gte('created_at', `${currentMonth}-01`)
-        .lt('created_at', `${currentMonth}-31`);
+        .lt('created_at', `${new Date().toISOString().slice(0, 8)}31`); // End of month
 
       if (labourError) throw labourError;
 
+      // Fetch payroll entries for payment history
+      const { data: payrollData, error: payrollError } = await supabase
+        .from('payroll_entries')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (payrollError) throw payrollError;
+
+      // Fetch payroll periods separately
+      const { data: periodsData, error: periodsError } = await supabase
+        .from('payroll_periods')
+        .select('*');
+
+      if (periodsError) throw periodsError;
+
       // Process and combine the data
       const workersWithStats = profilesData?.map(profile => {
+        // Get current rate for this worker
+        const currentRate = ratesData?.find(rate => rate.user_id === profile.user_id);
+        
+        // Get skills for this worker
+        const workerSkills = skillsData?.filter(skill => skill.user_id === profile.user_id) || [];
+        
+        // Get labour entries for this month
         const userLabourEntries = labourData?.filter(entry => entry.user_id === profile.user_id) || [];
         
         const totalHours = userLabourEntries.reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
         const totalEarnings = userLabourEntries.reduce((sum, entry) => sum + (entry.total_cost || 0), 0);
-        const hourlyRate = totalHours > 0 ? totalEarnings / totalHours : 25; // Default rate if no data
+        
+        // Get last payment date
+        const lastPayrollEntry = payrollData?.find(entry => entry.user_id === profile.user_id);
+        const lastPayment = lastPayrollEntry?.paid_date || null;
         
         return {
           id: profile.user_id,
@@ -71,31 +123,36 @@ export const useWorkerCosts = () => {
           role: profile.role === 'admin' ? 'Site Manager' : 
                 profile.role === 'manager' ? 'Project Manager' : 
                 profile.role === 'worker' ? 'Worker' : 'Team Member',
-          hourlyRate: Math.round(hourlyRate),
-          hoursThisMonth: Math.round(totalHours),
+          hourlyRate: currentRate?.hourly_rate || 25,
+          hoursThisMonth: Math.round(totalHours * 10) / 10, // Round to 1 decimal
           totalEarnings: Math.round(totalEarnings),
           status: 'active',
-          lastPayment: new Date().toISOString().split('T')[0],
+          lastPayment: lastPayment || 'No payments yet',
           phone: profile.phone,
           avatar_url: profile.avatar_url,
+          skills: workerSkills.map(skill => `${skill.skill_name} (${skill.skill_level}/5)${skill.certified ? ' ✓' : ''}`),
+          currentRateId: currentRate?.id,
         };
       }) || [];
 
       setWorkers(workersWithStats);
 
-      // Mock payment data for now - you can replace this with actual payment tracking
-      const mockPayments = workersWithStats.map(worker => ({
-        id: `payment-${worker.id}`,
-        workerId: worker.id,
-        workerName: worker.name,
-        amount: worker.totalEarnings,
-        period: `${new Date().toLocaleString('default', { month: 'long' })} ${new Date().getFullYear()}`,
-        status: worker.totalEarnings > 0 ? 'paid' : 'pending',
-        paidDate: worker.totalEarnings > 0 ? new Date().toISOString().split('T')[0] : null,
-        method: 'bank_transfer',
-      }));
+      // Transform payroll data to payment history
+      const paymentsHistory = payrollData?.map((entry) => {
+        const period = periodsData?.find(p => p.id === entry.payroll_period_id);
+        return {
+          id: entry.id,
+          workerId: entry.user_id,
+          workerName: profilesData?.find(p => p.user_id === entry.user_id)?.name || 'Unknown',
+          amount: entry.net_pay,
+          period: period?.name || 'Unknown Period',
+          status: entry.status,
+          paidDate: entry.paid_date,
+          method: entry.payment_method.replace('_', ' '),
+        };
+      }) || [];
 
-      setPayments(mockPayments);
+      setPayments(paymentsHistory);
 
     } catch (error) {
       console.error('Failed to load worker data:', error);
@@ -127,10 +184,19 @@ export const useWorkerCosts = () => {
     pendingPayments: payments.filter(p => p.status === "pending").length,
   };
 
-  const updateWorkerRate = async (workerId: string, newRate: number) => {
+  const updateWorkerRate = async (workerId: string, newRate: number, effectiveDate: string = new Date().toISOString().split('T')[0], notes: string = '') => {
     try {
-      // This would typically update a workers table or rates table
-      // For now, we'll just show a success message
+      const { error } = await supabase
+        .from('worker_rates')
+        .insert({
+          user_id: workerId,
+          hourly_rate: newRate,
+          effective_date: effectiveDate,
+          notes: notes,
+        });
+
+      if (error) throw error;
+
       toast({
         title: "Rate Updated",
         description: "Worker hourly rate has been updated successfully.",
@@ -146,9 +212,59 @@ export const useWorkerCosts = () => {
     }
   };
 
-  const processPayment = async (workerId: string, amount: number, period: string) => {
+  const processPayment = async (workerId: string, amount: number, period: string, method: string = 'bank_transfer') => {
     try {
-      // This would typically create a payment record
+      // First check if we have a payroll period for this period
+      let payrollPeriodId;
+      const { data: existingPeriod } = await supabase
+        .from('payroll_periods')
+        .select('id')
+        .eq('name', period)
+        .single();
+
+      if (existingPeriod) {
+        payrollPeriodId = existingPeriod.id;
+      } else {
+        // Create new payroll period
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        const endOfMonth = new Date(startOfMonth);
+        endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+        endOfMonth.setDate(0);
+
+        const { data: newPeriod, error: periodError } = await supabase
+          .from('payroll_periods')
+          .insert({
+            name: period,
+            start_date: startOfMonth.toISOString().split('T')[0],
+            end_date: endOfMonth.toISOString().split('T')[0],
+            status: 'active',
+          })
+          .select('id')
+          .single();
+
+        if (periodError) throw periodError;
+        payrollPeriodId = newPeriod.id;
+      }
+
+      // Create payroll entry
+      const { error } = await supabase
+        .from('payroll_entries')
+        .insert({
+          payroll_period_id: payrollPeriodId,
+          user_id: workerId,
+          regular_hours: 160, // Default full-time hours
+          regular_rate: workers.find(w => w.id === workerId)?.hourlyRate || 25,
+          gross_pay: amount,
+          net_pay: amount * 0.8, // Simplified: 20% deductions
+          deductions: amount * 0.2,
+          status: 'paid',
+          paid_date: new Date().toISOString().split('T')[0],
+          payment_method: method,
+        });
+
+      if (error) throw error;
+
       toast({
         title: "Payment Processed",
         description: "Payment has been successfully processed.",
@@ -159,6 +275,34 @@ export const useWorkerCosts = () => {
       toast({
         title: "Error",
         description: "Failed to process payment. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const createWorkerSkill = async (workerId: string, skillName: string, skillLevel: number = 1, certified: boolean = false) => {
+    try {
+      const { error } = await supabase
+        .from('worker_skills')
+        .insert({
+          user_id: workerId,
+          skill_name: skillName,
+          skill_level: skillLevel,
+          certified: certified,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Skill Added",
+        description: "Worker skill has been added successfully.",
+      });
+      loadWorkers(); // Refresh data
+    } catch (error) {
+      console.error('Failed to add worker skill:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add worker skill. Please try again.",
         variant: "destructive",
       });
     }
@@ -175,6 +319,7 @@ export const useWorkerCosts = () => {
     stats,
     updateWorkerRate,
     processPayment,
+    createWorkerSkill,
     refreshData: loadWorkers,
   };
 };

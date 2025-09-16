@@ -10,9 +10,25 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Plus, DollarSign, TrendingUp, Users, Calendar, Edit, Trash2 } from "lucide-react";
-import { useWorkerCosts } from "@/hooks/useWorkerCosts";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  Search, 
+  Plus, 
+  DollarSign, 
+  TrendingUp, 
+  Users, 
+  Calendar, 
+  Edit, 
+  Eye,
+  Filter,
+  Download,
+  BarChart3,
+  Briefcase
+} from "lucide-react";
+import { useWorkerCosts } from "@/hooks/useWorkerCosts";
+import { WorkerDetailDialog } from "@/components/admin/WorkerDetailDialog";
+import { WorkerCostsDashboard } from "@/components/admin/WorkerCostsDashboard";
 
 // Worker Cost Management Component
 
@@ -20,6 +36,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function WorkerCosts() {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isRateDialogOpen, setIsRateDialogOpen] = useState(false);
+  const [selectedWorker, setSelectedWorker] = useState<any>(null);
+  const [isWorkerDetailOpen, setIsWorkerDetailOpen] = useState(false);
+  const [selectedWorkerId, setSelectedWorkerId] = useState<string>("");
+  const [paymentAmount, setPaymentAmount] = useState<string>("");
+  const [paymentPeriod, setPaymentPeriod] = useState<string>(`${new Date().toLocaleString('default', { month: 'long' })} ${new Date().getFullYear()}`);
+  const [paymentMethod, setPaymentMethod] = useState<string>("bank_transfer");
+  const [newRate, setNewRate] = useState<string>("");
+  const [rateEffectiveDate, setRateEffectiveDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [rateNotes, setRateNotes] = useState<string>("");
   
   const {
     workers,
@@ -32,6 +57,7 @@ export function WorkerCosts() {
     stats,
     updateWorkerRate,
     processPayment,
+    createWorkerSkill,
   } = useWorkerCosts();
 
   const getStatusBadge = (status: string) => {
@@ -63,13 +89,35 @@ export function WorkerCosts() {
   };
 
   const handleProcessPayment = () => {
-    processPayment("", 0, "");
-    setIsPaymentDialogOpen(false);
+    if (selectedWorkerId && paymentAmount && parseFloat(paymentAmount) > 0) {
+      processPayment(selectedWorkerId, parseFloat(paymentAmount), paymentPeriod, paymentMethod);
+      setIsPaymentDialogOpen(false);
+      setSelectedWorkerId("");
+      setPaymentAmount("");
+    }
   };
 
   const handleUpdateRate = () => {
-    updateWorkerRate("", 0);
-    setIsRateDialogOpen(false);
+    if (selectedWorkerId && newRate && parseFloat(newRate) > 0) {
+      updateWorkerRate(selectedWorkerId, parseFloat(newRate), rateEffectiveDate, rateNotes);
+      setIsRateDialogOpen(false);
+      setSelectedWorkerId("");
+      setNewRate("");
+      setRateNotes("");
+    }
+  };
+
+  const handleViewWorkerDetails = (worker: any) => {
+    setSelectedWorker(worker);
+    setIsWorkerDetailOpen(true);
+  };
+
+  const handleUpdateWorkerRate = (workerId: string, newRate: number, effectiveDate: string, notes: string) => {
+    updateWorkerRate(workerId, newRate, effectiveDate, notes);
+  };
+
+  const handleAddWorkerSkill = (workerId: string, skillName: string, skillLevel: number, certified: boolean) => {
+    createWorkerSkill(workerId, skillName, skillLevel, certified);
   };
 
   if (loading) {
@@ -124,57 +172,23 @@ export function WorkerCosts() {
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Workers</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalWorkers}</div>
-              <p className="text-xs text-muted-foreground">Active employees</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Monthly Payroll</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${stats.totalMonthlyPay.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">Current month total</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average Rate</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${stats.averageHourlyRate.toFixed(0)}/hr</div>
-              <p className="text-xs text-muted-foreground">Per hour average</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.pendingPayments}</div>
-              <p className="text-xs text-muted-foreground">Awaiting processing</p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Enhanced Stats Dashboard */}
+        <WorkerCostsDashboard stats={stats} />
 
         <Tabs defaultValue="workers" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="workers">Workers</TabsTrigger>
-            <TabsTrigger value="payments">Payment History</TabsTrigger>
+            <TabsTrigger value="workers">
+              <Users className="h-4 w-4 mr-2" />
+              Workers
+            </TabsTrigger>
+            <TabsTrigger value="payments">
+              <DollarSign className="h-4 w-4 mr-2" />
+              Payment History
+            </TabsTrigger>
+            <TabsTrigger value="analytics">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analytics
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="workers">
@@ -188,6 +202,14 @@ export function WorkerCosts() {
                     </CardDescription>
                   </div>
                   <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Advanced Filters
+                    </Button>
                     <Dialog open={isRateDialogOpen} onOpenChange={setIsRateDialogOpen}>
                       <DialogTrigger asChild>
                         <Button>
@@ -195,21 +217,21 @@ export function WorkerCosts() {
                           Update Rates
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="max-w-md">
                         <DialogHeader>
                           <DialogTitle>Update Worker Rate</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div>
                             <Label htmlFor="worker">Worker</Label>
-                            <Select>
+                            <Select value={selectedWorkerId} onValueChange={setSelectedWorkerId}>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select worker" />
                               </SelectTrigger>
                               <SelectContent>
                                 {workers.map((worker) => (
                                   <SelectItem key={worker.id} value={worker.id}>
-                                    {worker.name}
+                                    {worker.name} - ${worker.hourlyRate}/hr
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -217,15 +239,32 @@ export function WorkerCosts() {
                           </div>
                           <div>
                             <Label htmlFor="rate">New Hourly Rate ($)</Label>
-                            <Input id="rate" type="number" placeholder="45.00" />
+                            <Input 
+                              id="rate" 
+                              type="number" 
+                              step="0.01"
+                              value={newRate}
+                              onChange={(e) => setNewRate(e.target.value)}
+                              placeholder="45.00" 
+                            />
                           </div>
                           <div>
                             <Label htmlFor="effective">Effective Date</Label>
-                            <Input id="effective" type="date" />
+                            <Input 
+                              id="effective" 
+                              type="date" 
+                              value={rateEffectiveDate}
+                              onChange={(e) => setRateEffectiveDate(e.target.value)}
+                            />
                           </div>
                           <div>
                             <Label htmlFor="notes">Notes</Label>
-                            <Textarea id="notes" placeholder="Reason for rate change..." />
+                            <Textarea 
+                              id="notes" 
+                              value={rateNotes}
+                              onChange={(e) => setRateNotes(e.target.value)}
+                              placeholder="Reason for rate change..." 
+                            />
                           </div>
                           <Button onClick={handleUpdateRate} className="w-full">
                             Update Rate
@@ -241,7 +280,7 @@ export function WorkerCosts() {
                   <div className="relative flex-1">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search workers..."
+                      placeholder="Search workers by name, role, or skills..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-8"
@@ -253,9 +292,9 @@ export function WorkerCosts() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Roles</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                      <SelectItem value="electrician">Electrician</SelectItem>
-                      <SelectItem value="plumber">Plumber</SelectItem>
+                      <SelectItem value="manager">Managers</SelectItem>
+                      <SelectItem value="worker">Workers</SelectItem>
+                      <SelectItem value="admin">Admins</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -268,6 +307,7 @@ export function WorkerCosts() {
                       <TableHead>Hourly Rate</TableHead>
                       <TableHead>Hours This Month</TableHead>
                       <TableHead>Total Earnings</TableHead>
+                      <TableHead>Skills</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -275,19 +315,59 @@ export function WorkerCosts() {
                   <TableBody>
                     {workers.map((worker) => (
                       <TableRow key={worker.id}>
-                        <TableCell className="font-medium">{worker.name}</TableCell>
-                        <TableCell>{worker.role}</TableCell>
-                        <TableCell>${worker.hourlyRate}/hr</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={worker.avatar_url} alt={worker.name} />
+                              <AvatarFallback>
+                                {worker.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{worker.name}</p>
+                              <p className="text-sm text-muted-foreground">{worker.phone || 'No phone'}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            <Briefcase className="h-3 w-3 mr-1" />
+                            {worker.role}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-mono">${worker.hourlyRate}/hr</TableCell>
                         <TableCell>{worker.hoursThisMonth}h</TableCell>
-                        <TableCell>${worker.totalEarnings.toLocaleString()}</TableCell>
+                        <TableCell className="font-mono">${worker.totalEarnings.toLocaleString()}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1 max-w-32">
+                            {worker.skills && worker.skills.length > 0 ? (
+                              worker.skills.slice(0, 2).map((skill, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {skill.split(' ')[0]}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-xs text-muted-foreground">No skills</span>
+                            )}
+                            {worker.skills && worker.skills.length > 2 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{worker.skills.length - 2}
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell>{getStatusBadge(worker.status)}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4" />
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleViewWorkerDetails(worker)}
+                            >
+                              <Eye className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="sm">
-                              <Trash2 className="h-4 w-4" />
+                              <Edit className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>
@@ -316,21 +396,21 @@ export function WorkerCosts() {
                         Process Payment
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-md">
                       <DialogHeader>
                         <DialogTitle>Process Payment</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>
                           <Label htmlFor="paymentWorker">Worker</Label>
-                          <Select>
+                          <Select value={selectedWorkerId} onValueChange={setSelectedWorkerId}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select worker" />
                             </SelectTrigger>
                             <SelectContent>
                               {workers.map((worker) => (
                                 <SelectItem key={worker.id} value={worker.id}>
-                                  {worker.name}
+                                  {worker.name} - ${worker.totalEarnings} earned
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -338,15 +418,27 @@ export function WorkerCosts() {
                         </div>
                         <div>
                           <Label htmlFor="amount">Amount ($)</Label>
-                          <Input id="amount" type="number" placeholder="5000.00" />
+                          <Input 
+                            id="amount" 
+                            type="number" 
+                            step="0.01"
+                            value={paymentAmount}
+                            onChange={(e) => setPaymentAmount(e.target.value)}
+                            placeholder="5000.00" 
+                          />
                         </div>
                         <div>
                           <Label htmlFor="period">Pay Period</Label>
-                          <Input id="period" placeholder="January 2024" />
+                          <Input 
+                            id="period" 
+                            value={paymentPeriod}
+                            onChange={(e) => setPaymentPeriod(e.target.value)}
+                            placeholder="January 2024" 
+                          />
                         </div>
                         <div>
                           <Label htmlFor="method">Payment Method</Label>
-                          <Select>
+                          <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select method" />
                             </SelectTrigger>
@@ -393,7 +485,60 @@ export function WorkerCosts() {
               </CardContent>
             </Card>
           </TabsContent>
+          <TabsContent value="analytics">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Cost Trends</CardTitle>
+                  <CardDescription>Monthly payroll trends and projections</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[200px] flex items-center justify-center text-muted-foreground">
+                    <BarChart3 className="h-8 w-8 mr-2" />
+                    Interactive charts coming soon
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Efficiency Metrics</CardTitle>
+                  <CardDescription>Worker productivity and cost efficiency</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Cost per hour worked</span>
+                        <span>${(stats.totalMonthlyPay / (stats.totalWorkers * 160)).toFixed(0)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Revenue per worker</span>
+                        <span>${((stats.totalMonthlyPay * 1.4) / stats.totalWorkers).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Profit margin</span>
+                        <span className="text-success">28%</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
         </Tabs>
+
+        {/* Worker Detail Dialog */}
+        <WorkerDetailDialog
+          worker={selectedWorker}
+          isOpen={isWorkerDetailOpen}
+          onClose={() => {
+            setIsWorkerDetailOpen(false);
+            setSelectedWorker(null);
+          }}
+          onUpdateRate={handleUpdateWorkerRate}
+          onAddSkill={handleAddWorkerSkill}
+        />
       </div>
     </AppLayout>
   );
