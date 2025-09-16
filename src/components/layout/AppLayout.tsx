@@ -234,7 +234,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           
           {/* Main Content */}
           <main className="flex-1 overflow-x-hidden bg-muted/30">
-            <div className="h-full px-2 py-4 sm:px-4 sm:py-6 lg:px-8 pb-20 lg:pb-6">
+            <div className="h-full px-4 py-6 lg:px-8 pb-20 lg:pb-6">
               {children}
             </div>
           </main>

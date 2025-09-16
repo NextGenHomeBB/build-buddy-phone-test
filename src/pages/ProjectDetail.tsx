@@ -244,30 +244,30 @@ export default function ProjectDetail() {
 
   return (
     <AppLayout>
-      <div className="space-y-4 pb-20 lg:pb-6">{/* Mobile padding bottom removed since it's handled by AppLayout */}
+      <div className={`space-y-4 ${isMobile ? 'pb-20' : 'space-y-6'}`}>
         {/* Header */}
-        <div className="flex items-center gap-2 mb-2">
-          <Button variant="ghost" size={isMobile ? "sm" : "sm"} asChild className="p-2">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" asChild>
             <Link to="/projects">
-              <ArrowLeft className="h-4 w-4" />
-              {!isMobile && <span className="ml-2">Back to Projects</span>}
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {!isMobile && "Back to Projects"}
             </Link>
           </Button>
         </div>
 
         {/* Project Overview */}
-        <div className="space-y-4">
-          <div className="flex flex-col gap-4">
-            <div className="space-y-3">
-              <div className="flex flex-col gap-3">
-                 <h1 className={`${isMobile ? 'text-xl leading-tight' : 'text-2xl lg:text-3xl'} font-bold text-foreground`}>
+        <div className={`space-y-4 ${isMobile ? 'px-4' : ''}`}>
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div className="space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                 <h1 className={`${isMobile ? 'text-xl' : 'text-2xl lg:text-3xl'} font-bold text-foreground`}>
                    {project.name}
                  </h1>
                  <div className="flex items-center gap-2 flex-wrap">
                 {canEditProject() ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className={isMobile ? 'text-xs h-8' : ''}>
+                      <Button variant="outline" size={isMobile ? "sm" : "sm"} className={isMobile ? 'text-xs' : ''}>
                         {project.type.charAt(0).toUpperCase() + project.type.slice(1)}
                         <ChevronDown className="h-3 w-3 ml-1" />
                       </Button>
@@ -288,29 +288,29 @@ export default function ProjectDetail() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
-                  <Badge variant="outline" className={isMobile ? 'text-xs px-2 py-1' : ''}>
+                  <Badge variant="outline" className={isMobile ? 'text-xs' : ''}>
                     {project.type.charAt(0).toUpperCase() + project.type.slice(1)}
                   </Badge>
                  )}
                 </div>
               </div>
-              <p className={`text-muted-foreground ${isMobile ? 'text-sm leading-relaxed' : ''}`}>
+              <p className="text-muted-foreground">
                 {project.description}
               </p>
             </div>
             
-            <div className={`flex gap-2 ${isMobile ? 'flex-col sm:flex-row' : ''}`}>
+            <div className={`flex gap-2 ${isMobile ? 'w-full' : ''}`}>
               {canEditProject() && (
                 <EditProjectDialog project={project}>
-                  <Button variant="outline" size="sm" className={isMobile ? 'h-9 text-sm' : ''}>
-                    {isMobile ? 'Edit Project' : 'Edit Project'}
+                  <Button variant="outline" size="sm" className={isMobile ? 'flex-1 text-xs' : ''}>
+                    {isMobile ? 'Edit' : 'Edit Project'}
                   </Button>
                 </EditProjectDialog>
               )}
               {canViewReports() && (
-                <Button size="sm" asChild className={isMobile ? 'h-9 text-sm' : ''}>
+                <Button size="sm" asChild className={isMobile ? 'flex-1 text-xs' : ''}>
                   <Link to={`/projects/${id}/reports`}>
-                    {isMobile ? 'View Reports' : 'View Reports'}
+                    {isMobile ? 'Reports' : 'View Reports'}
                   </Link>
                 </Button>
               )}
@@ -318,109 +318,65 @@ export default function ProjectDetail() {
           </div>
 
           {/* Key Metrics */}
-          <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'}`}>
-            <Card className={isMobile ? 'min-h-[120px]' : ''}>
+          <div className={`grid grid-cols-1 ${isMobile ? 'gap-3' : 'md:grid-cols-2 lg:grid-cols-4 gap-4'}`}>
+            <Card>
               <CardContent className={isMobile ? "p-3" : "p-4"}>
-                <div className={`flex ${isMobile ? 'flex-col' : 'items-center'} gap-2`}>
-                  <div className={`${isMobile ? 'flex items-center gap-2' : 'flex items-center gap-3'}`}>
-                    <div className={`p-2 bg-primary/10 rounded-lg ${isMobile ? 'p-1.5' : ''}`}>
-                      <Activity className={`text-primary ${isMobile ? 'h-4 w-4' : 'h-4 w-4'}`} />
-                    </div>
-                    {!isMobile && (
-                      <div>
-                        <div className="text-sm text-muted-foreground">Progress</div>
-                        <div className="font-semibold text-lg">{project.progress}%</div>
-                      </div>
-                    )}
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 bg-primary/10 rounded-lg ${isMobile ? 'p-1.5' : ''}`}>
+                    <Activity className={`text-primary ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                   </div>
-                  {isMobile && (
-                    <div className="space-y-1">
-                      <div className="text-xs text-muted-foreground">Progress</div>
-                      <div className="font-semibold text-base">{project.progress}%</div>
-                    </div>
-                  )}
+                  <div>
+                    <div className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>Progress</div>
+                    <div className={`font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>{project.progress}%</div>
+                  </div>
                 </div>
                 <Progress value={project.progress} className="mt-2" />
               </CardContent>
             </Card>
 
-            <Card className={isMobile ? 'min-h-[120px]' : ''}>
+            <Card>
               <CardContent className={isMobile ? "p-3" : "p-4"}>
-                <div className={`flex ${isMobile ? 'flex-col' : 'items-center'} gap-2`}>
-                  <div className={`${isMobile ? 'flex items-center gap-2' : 'flex items-center gap-3'}`}>
-                    <div className={`p-2 bg-success/10 rounded-lg ${isMobile ? 'p-1.5' : ''}`}>
-                      <DollarSign className={`text-success ${isMobile ? 'h-4 w-4' : 'h-4 w-4'}`} />
-                    </div>
-                    {!isMobile && (
-                      <div>
-                        <div className="text-sm text-muted-foreground">Budget</div>
-                        <div className="font-semibold text-lg">
-                          €{(project.spent / 1000).toFixed(0)}k / €{(project.budget / 1000).toFixed(0)}k
-                        </div>
-                      </div>
-                    )}
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 bg-success/10 rounded-lg ${isMobile ? 'p-1.5' : ''}`}>
+                    <DollarSign className={`text-success ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                   </div>
-                  {isMobile && (
-                    <div className="space-y-1">
-                      <div className="text-xs text-muted-foreground">Budget</div>
-                      <div className="font-semibold text-sm">
-                        €{(project.spent / 1000).toFixed(0)}k / €{(project.budget / 1000).toFixed(0)}k
-                      </div>
-                    </div>
-                  )}
+                  <div>
+                    <div className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>Budget</div>
+                     <div className={`font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>
+                       €{(project.spent / 1000).toFixed(0)}k / €{(project.budget / 1000).toFixed(0)}k
+                     </div>
+                  </div>
                 </div>
                 <Progress value={(project.spent / project.budget) * 100} className="mt-2" />
               </CardContent>
             </Card>
 
-            <Card className={isMobile ? 'min-h-[120px]' : ''}>
+            <Card>
               <CardContent className={isMobile ? "p-3" : "p-4"}>
-                <div className={`flex ${isMobile ? 'flex-col' : 'items-center'} gap-2`}>
-                  <div className={`${isMobile ? 'flex items-center gap-2' : 'flex items-center gap-3'}`}>
-                    <div className={`p-2 bg-warning/10 rounded-lg ${isMobile ? 'p-1.5' : ''}`}>
-                      <Calendar className={`text-warning ${isMobile ? 'h-4 w-4' : 'h-4 w-4'}`} />
-                    </div>
-                    {!isMobile && (
-                      <div>
-                        <div className="text-sm text-muted-foreground">Timeline</div>
-                        <div className="font-medium text-sm">
-                          {format(new Date(project.start_date), 'MMM dd')} - {format(new Date(project.end_date), 'MMM dd, yyyy')}
-                        </div>
-                      </div>
-                    )}
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 bg-warning/10 rounded-lg ${isMobile ? 'p-1.5' : ''}`}>
+                    <Calendar className={`text-warning ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                   </div>
-                  {isMobile && (
-                    <div className="space-y-1">
-                      <div className="text-xs text-muted-foreground">Timeline</div>
-                      <div className="font-medium text-xs leading-tight">
-                        {format(new Date(project.start_date), 'MMM dd')} - {format(new Date(project.end_date), 'MMM dd')}
-                      </div>
+                  <div>
+                    <div className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>Timeline</div>
+                    <div className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                      {format(new Date(project.start_date), 'MMM dd')} - {format(new Date(project.end_date), isMobile ? 'MMM dd, yyyy' : 'MMM dd, yyyy')}
                     </div>
-                  )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className={isMobile ? 'min-h-[120px]' : ''}>
+            <Card>
               <CardContent className={isMobile ? "p-3" : "p-4"}>
-                <div className={`flex ${isMobile ? 'flex-col' : 'items-center'} gap-2`}>
-                  <div className={`${isMobile ? 'flex items-center gap-2' : 'flex items-center gap-3'}`}>
-                    <div className={`p-2 bg-accent/10 rounded-lg ${isMobile ? 'p-1.5' : ''}`}>
-                      <MapPin className={`text-accent-foreground ${isMobile ? 'h-4 w-4' : 'h-4 w-4'}`} />
-                    </div>
-                    {!isMobile && (
-                      <div>
-                        <div className="text-sm text-muted-foreground">Location</div>
-                        <div className="font-medium text-sm">{project.location}</div>
-                      </div>
-                    )}
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 bg-accent/10 rounded-lg ${isMobile ? 'p-1.5' : ''}`}>
+                    <MapPin className={`text-accent-foreground ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                   </div>
-                  {isMobile && (
-                    <div className="space-y-1">
-                      <div className="text-xs text-muted-foreground">Location</div>
-                      <div className="font-medium text-xs">{project.location}</div>
-                    </div>
-                  )}
+                  <div>
+                    <div className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>Location</div>
+                    <div className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>{project.location}</div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -428,37 +384,41 @@ export default function ProjectDetail() {
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className={`space-y-4 ${isMobile ? 'px-4' : ''}`}>
           {isMobile ? (
-            // Mobile: Single scrollable row of tabs
-            <div className="w-full overflow-hidden">
-              <div className="flex overflow-x-auto scrollbar-hide pb-2">
-                <TabsList className="inline-flex min-w-max h-10">
-                  <TabsTrigger value="overview" className="text-xs px-3 py-2 h-8 min-w-[80px] whitespace-nowrap">
+            // Mobile: Two rows of tabs
+            <div className="space-y-2">
+              <div className="flex overflow-x-auto scrollbar-hide gap-1">
+                <TabsList className="inline-flex min-w-max">
+                  <TabsTrigger value="overview" className="text-xs px-3 py-2 whitespace-nowrap">
                     Overview
                   </TabsTrigger>
-                  <TabsTrigger value="phases" className="text-xs px-3 py-2 h-8 min-w-[70px] whitespace-nowrap">
+                  <TabsTrigger value="phases" className="text-xs px-3 py-2 whitespace-nowrap">
                     Phases
                   </TabsTrigger>
-                  <TabsTrigger value="calendar" className="text-xs px-3 py-2 h-8 min-w-[80px] whitespace-nowrap">
+                  <TabsTrigger value="calendar" className="text-xs px-3 py-2 whitespace-nowrap">
                     Calendar
                   </TabsTrigger>
-                  <TabsTrigger value="checklists" className="text-xs px-3 py-2 h-8 min-w-[60px] whitespace-nowrap">
+                  <TabsTrigger value="checklists" className="text-xs px-3 py-2 whitespace-nowrap">
                     Lists
                   </TabsTrigger>
-                  <TabsTrigger value="materials" className="text-xs px-3 py-2 h-8 min-w-[80px] whitespace-nowrap">
+                </TabsList>
+              </div>
+              <div className="flex overflow-x-auto scrollbar-hide gap-1">
+                <TabsList className="inline-flex min-w-max">
+                  <TabsTrigger value="materials" className="text-xs px-3 py-2 whitespace-nowrap">
                     Materials
                   </TabsTrigger>
-                  <TabsTrigger value="labour" className="text-xs px-3 py-2 h-8 min-w-[70px] whitespace-nowrap">
+                  <TabsTrigger value="labour" className="text-xs px-3 py-2 whitespace-nowrap">
                     Labour
                   </TabsTrigger>
-                  <TabsTrigger value="team" className="text-xs px-3 py-2 h-8 min-w-[60px] whitespace-nowrap">
+                  <TabsTrigger value="team" className="text-xs px-3 py-2 whitespace-nowrap">
                     Team
                   </TabsTrigger>
-                  <TabsTrigger value="docs" className="text-xs px-3 py-2 h-8 min-w-[60px] whitespace-nowrap">
+                  <TabsTrigger value="docs" className="text-xs px-3 py-2 whitespace-nowrap">
                     Docs
                   </TabsTrigger>
-                  <TabsTrigger value="activity" className="text-xs px-3 py-2 h-8 min-w-[70px] whitespace-nowrap">
+                  <TabsTrigger value="activity" className="text-xs px-3 py-2 whitespace-nowrap">
                     Activity
                   </TabsTrigger>
                 </TabsList>
@@ -526,28 +486,26 @@ export default function ProjectDetail() {
                       className="hover:shadow-md transition-shadow cursor-pointer"
                       onClick={() => navigate(`/projects/${id}/phase/${phase.id}`)}
                     >
-                      <CardContent className={isMobile ? "p-3" : "p-4"}>
-                        <div className={`${isMobile ? 'space-y-3' : 'flex items-center justify-between'}`}>
-                          <div className="space-y-2 flex-1">
-                            <div className={`flex items-center ${isMobile ? 'justify-between' : 'gap-3'}`}>
-                              <div className="flex items-center gap-2">
-                                {(() => {
-                                  const Icon = getPhaseStatusIcon(phase.status);
-                                  return <Icon className="h-4 w-4" />;
-                                })()}
-                                 <h4 className={`font-semibold ${isMobile ? 'text-sm' : ''}`}>{phase.name}</h4>
-                              </div>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                              {(() => {
+                                const Icon = getPhaseStatusIcon(phase.status);
+                                return <Icon className="h-4 w-4" />;
+                              })()}
+                               <h4 className="font-semibold">{phase.name}</h4>
                                {canEditPhase() ? (
                                  <DropdownMenu>
                                    <DropdownMenuTrigger asChild>
                                      <Button 
                                        variant="outline" 
                                        size="sm"
-                                       className={`${getStatusColor(phase.status)} hover:opacity-80 transition-opacity border-0 ${isMobile ? 'text-xs h-7 px-2' : ''}`}
+                                       className={`${getStatusColor(phase.status)} hover:opacity-80 transition-opacity border-0`}
                                        onClick={(e) => e.stopPropagation()}
                                      >
                                        {phase.status.charAt(0).toUpperCase() + phase.status.slice(1)}
-                                       <ChevronDown className="ml-1 h-3 w-3" />
+                                       <ChevronDown className="ml-2 h-4 w-4" />
                                      </Button>
                                    </DropdownMenuTrigger>
                                    <DropdownMenuContent className="z-50 bg-background border border-border shadow-lg">
@@ -599,58 +557,49 @@ export default function ProjectDetail() {
                                    </DropdownMenuContent>
                                  </DropdownMenu>
                                ) : (
-                                 <Badge variant="outline" className={`${getStatusColor(phase.status)} ${isMobile ? 'text-xs px-2 py-1' : ''}`}>
+                                 <Badge variant="outline" className={getStatusColor(phase.status)}>
                                    {phase.status}
                                  </Badge>
                                )}
                             </div>
-                            <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                            <p className="text-sm text-muted-foreground">
                               {phase.description}
                             </p>
-                            <div className={`${isMobile ? 'grid grid-cols-1 gap-1' : 'flex items-center gap-4'} text-sm text-muted-foreground`}>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                <span className={isMobile ? 'text-xs' : ''}>
-                                  {phase.start_date && phase.end_date ? `${format(new Date(phase.start_date), 'MMM dd')} - ${format(new Date(phase.end_date), 'MMM dd')}` : 'No dates'}
-                                </span>
+                                {phase.start_date && phase.end_date ? `${format(new Date(phase.start_date), 'MMM dd')} - ${format(new Date(phase.end_date), 'MMM dd')}` : 'No dates'}
                               </span>
                                <span className="flex items-center gap-1">
                                  <DollarSign className="h-3 w-3" />
-                                 <span className={isMobile ? 'text-xs' : ''}>
-                                   €{((phase.material_cost || 0) + (phase.labour_cost || 0)).toLocaleString()} / €{phase.budget.toLocaleString()}
-                                 </span>
+                                 €{((phase.material_cost || 0) + (phase.labour_cost || 0)).toLocaleString()} / €{phase.budget.toLocaleString()}
                                </span>
                               <span className="flex items-center gap-1">
                                 <CheckCircle className="h-3 w-3" />
-                                <span className={isMobile ? 'text-xs' : ''}>
-                                  {(() => {
-                                    const taskCounts = getTaskCountsForPhase(phaseTaskCounts, phase.id);
-                                    return `${taskCounts.completed} / ${taskCounts.total} tasks`;
-                                  })()}
-                                </span>
+                                {(() => {
+                                  const taskCounts = getTaskCountsForPhase(phaseTaskCounts, phase.id);
+                                  return `${taskCounts.completed} / ${taskCounts.total} tasks`;
+                                })()}
                               </span>
                             </div>
                           </div>
-                          <div className={`flex items-center gap-3 ${isMobile ? 'justify-between mt-2' : ''}`}>
-                            <div className={`text-right space-y-1 ${isMobile ? 'text-left' : ''}`}>
-                              <div className={`font-medium ${isMobile ? 'text-sm' : 'text-sm'}`}>{phase.progress}%</div>
-                              <Progress value={phase.progress} className={isMobile ? "w-16" : "w-20"} />
+                          <div className="flex items-center gap-3">
+                            <div className="text-right space-y-1">
+                              <div className="text-sm font-medium">{phase.progress}%</div>
+                              <Progress value={phase.progress} className="w-20" />
                             </div>
-                            <div className="flex items-center gap-1">
-                              {canEditPhase() && (
-                                <EditPhaseDialog phase={phase} projectId={id!}>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    className={isMobile ? 'h-8 w-8 p-0' : ''}
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <Settings className="h-4 w-4" />
-                                  </Button>
-                                </EditPhaseDialog>
-                              )}
-                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                            </div>
+                            {canEditPhase() && (
+                              <EditPhaseDialog phase={phase} projectId={id!}>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Settings className="h-4 w-4" />
+                                </Button>
+                              </EditPhaseDialog>
+                            )}
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
                           </div>
                         </div>
                       </CardContent>
