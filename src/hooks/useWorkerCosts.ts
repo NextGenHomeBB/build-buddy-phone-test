@@ -48,33 +48,50 @@ export const useWorkerCosts = () => {
 
   const loadWorkers = async () => {
     try {
+      console.log('🔄 Loading worker data...');
       setLoading(true);
       
       // Fetch all workers from profiles table
+      console.log('📋 Fetching profiles...');
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .eq('is_placeholder', false);
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error('❌ Profiles error:', profilesError);
+        throw profilesError;
+      }
+      console.log('✅ Profiles loaded:', profilesData?.length || 0, 'profiles');
 
       // Fetch current worker rates
+      console.log('📊 Fetching worker rates...');
       const { data: ratesData, error: ratesError } = await supabase
         .from('worker_rates')
         .select('*')
         .order('effective_date', { ascending: false });
 
-      if (ratesError) throw ratesError;
+      if (ratesError) {
+        console.error('❌ Rates error:', ratesError);
+        throw ratesError;
+      }
+      console.log('✅ Rates loaded:', ratesData?.length || 0, 'rates');
 
       // Fetch worker skills
+      console.log('🛠️ Fetching worker skills...');
       const { data: skillsData, error: skillsError } = await supabase
         .from('worker_skills')
         .select('user_id, skill_name, skill_level, certified');
 
-      if (skillsError) throw skillsError;
+      if (skillsError) {
+        console.error('❌ Skills error:', skillsError);
+        throw skillsError;
+      }
+      console.log('✅ Skills loaded:', skillsData?.length || 0, 'skills');
 
       // Fetch labour entries for the current month to calculate hours and earnings
       const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+      console.log('⏰ Fetching labour entries for month:', currentMonth);
       
       const { data: labourData, error: labourError } = await supabase
         .from('labour_entries')
@@ -82,22 +99,36 @@ export const useWorkerCosts = () => {
         .gte('created_at', `${currentMonth}-01`)
         .lt('created_at', `${new Date().toISOString().slice(0, 8)}31`); // End of month
 
-      if (labourError) throw labourError;
+      if (labourError) {
+        console.error('❌ Labour entries error:', labourError);
+        throw labourError;
+      }
+      console.log('✅ Labour entries loaded:', labourData?.length || 0, 'entries');
 
       // Fetch payroll entries for payment history
+      console.log('💰 Fetching payroll entries...');
       const { data: payrollData, error: payrollError } = await supabase
         .from('payroll_entries')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (payrollError) throw payrollError;
+      if (payrollError) {
+        console.error('❌ Payroll entries error:', payrollError);
+        throw payrollError;
+      }
+      console.log('✅ Payroll entries loaded:', payrollData?.length || 0, 'entries');
 
       // Fetch payroll periods separately
+      console.log('📅 Fetching payroll periods...');
       const { data: periodsData, error: periodsError } = await supabase
         .from('payroll_periods')
         .select('*');
 
-      if (periodsError) throw periodsError;
+      if (periodsError) {
+        console.error('❌ Payroll periods error:', periodsError);
+        throw periodsError;
+      }
+      console.log('✅ Payroll periods loaded:', periodsData?.length || 0, 'periods');
 
       // Process and combine the data
       const workersWithStats = profilesData?.map(profile => {
@@ -136,6 +167,7 @@ export const useWorkerCosts = () => {
       }) || [];
 
       setWorkers(workersWithStats);
+      console.log('✅ Workers processed successfully:', workersWithStats.length, 'workers');
 
       // Transform payroll data to payment history
       const paymentsHistory = payrollData?.map((entry) => {
@@ -153,12 +185,15 @@ export const useWorkerCosts = () => {
       }) || [];
 
       setPayments(paymentsHistory);
+      console.log('✅ Payment history processed:', paymentsHistory.length, 'payments');
+      console.log('🎉 Worker data loaded successfully!');
 
     } catch (error) {
-      console.error('Failed to load worker data:', error);
+      console.error('💥 Failed to load worker data:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
-        title: "Error",
-        description: "Failed to load worker data. Please try again.",
+        title: "Data Loading Error",
+        description: `Failed to load worker data: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
@@ -186,6 +221,8 @@ export const useWorkerCosts = () => {
 
   const updateWorkerRate = async (workerId: string, newRate: number, effectiveDate: string = new Date().toISOString().split('T')[0], notes: string = '') => {
     try {
+      console.log('💰 Updating worker rate:', { workerId, newRate, effectiveDate, notes });
+      
       const { error } = await supabase
         .from('worker_rates')
         .insert({
@@ -195,18 +232,23 @@ export const useWorkerCosts = () => {
           notes: notes,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Rate update error:', error);
+        throw error;
+      }
 
+      console.log('✅ Worker rate updated successfully');
       toast({
-        title: "Rate Updated",
-        description: "Worker hourly rate has been updated successfully.",
+        title: "Rate Updated Successfully",
+        description: `Hourly rate updated to $${newRate}/hr effective ${effectiveDate}`,
       });
       loadWorkers(); // Refresh data
     } catch (error) {
-      console.error('Failed to update worker rate:', error);
+      console.error('💥 Failed to update worker rate:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
-        title: "Error",
-        description: "Failed to update worker rate. Please try again.",
+        title: "Rate Update Failed",
+        description: `Could not update worker rate: ${errorMessage}`,
         variant: "destructive",
       });
     }
@@ -214,6 +256,8 @@ export const useWorkerCosts = () => {
 
   const processPayment = async (workerId: string, amount: number, period: string, method: string = 'bank_transfer') => {
     try {
+      console.log('💳 Processing payment:', { workerId, amount, period, method });
+      
       // First check if we have a payroll period for this period
       let payrollPeriodId;
       const { data: existingPeriod } = await supabase
@@ -224,7 +268,9 @@ export const useWorkerCosts = () => {
 
       if (existingPeriod) {
         payrollPeriodId = existingPeriod.id;
+        console.log('📅 Using existing payroll period:', payrollPeriodId);
       } else {
+        console.log('📅 Creating new payroll period:', period);
         // Create new payroll period
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
@@ -243,11 +289,16 @@ export const useWorkerCosts = () => {
           .select('id')
           .single();
 
-        if (periodError) throw periodError;
+        if (periodError) {
+          console.error('❌ Period creation error:', periodError);
+          throw periodError;
+        }
         payrollPeriodId = newPeriod.id;
+        console.log('✅ New payroll period created:', payrollPeriodId);
       }
 
       // Create payroll entry
+      console.log('💰 Creating payroll entry...');
       const { error } = await supabase
         .from('payroll_entries')
         .insert({
@@ -263,18 +314,23 @@ export const useWorkerCosts = () => {
           payment_method: method,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Payment processing error:', error);
+        throw error;
+      }
 
+      console.log('✅ Payment processed successfully');
       toast({
-        title: "Payment Processed",
-        description: "Payment has been successfully processed.",
+        title: "Payment Processed Successfully",
+        description: `$${amount.toLocaleString()} payment processed for ${period}`,
       });
       loadWorkers(); // Refresh data
     } catch (error) {
-      console.error('Failed to process payment:', error);
+      console.error('💥 Failed to process payment:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
-        title: "Error",
-        description: "Failed to process payment. Please try again.",
+        title: "Payment Processing Failed",
+        description: `Could not process payment: ${errorMessage}`,
         variant: "destructive",
       });
     }
@@ -282,6 +338,8 @@ export const useWorkerCosts = () => {
 
   const createWorkerSkill = async (workerId: string, skillName: string, skillLevel: number = 1, certified: boolean = false) => {
     try {
+      console.log('🛠️ Adding worker skill:', { workerId, skillName, skillLevel, certified });
+      
       const { error } = await supabase
         .from('worker_skills')
         .insert({
@@ -291,18 +349,23 @@ export const useWorkerCosts = () => {
           certified: certified,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Skill creation error:', error);
+        throw error;
+      }
 
+      console.log('✅ Worker skill added successfully');
       toast({
-        title: "Skill Added",
-        description: "Worker skill has been added successfully.",
+        title: "Skill Added Successfully", 
+        description: `Added ${skillName} (Level ${skillLevel}) ${certified ? 'with certification' : ''}`,
       });
       loadWorkers(); // Refresh data
     } catch (error) {
-      console.error('Failed to add worker skill:', error);
+      console.error('💥 Failed to add worker skill:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
-        title: "Error",
-        description: "Failed to add worker skill. Please try again.",
+        title: "Skill Addition Failed",
+        description: `Could not add worker skill: ${errorMessage}`,
         variant: "destructive",
       });
     }
