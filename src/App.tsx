@@ -167,9 +167,9 @@ const App = () => (
                
                {/* Schedule routes */}
                <Route path="/schedule" element={<RequireAuth><ScheduleDayView /></RequireAuth>} />
-               <Route path="/worker-availability" element={<RequireAuth><WorkerAvailability /></RequireAuth>} />
                
               {/* Admin routes - Admin only */}
+              <Route path="/admin/availability" element={<RequireAuth roles={['admin', 'manager']}><WorkerAvailability /></RequireAuth>} />
               <Route path="/admin/schedule-planner" element={<RequireAuth roles={['admin', 'manager']}><SchedulePlanner /></RequireAuth>} />
               <Route path="/admin" element={<RequireAuth roles={['admin']}><AdminDashboard /></RequireAuth>} />
               <Route path="/admin/users" element={<RequireAuth roles={['admin']}><UserManagement /></RequireAuth>} />

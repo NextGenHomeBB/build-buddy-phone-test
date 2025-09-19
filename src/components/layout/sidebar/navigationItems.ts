@@ -33,12 +33,6 @@ export const getNavigationItems = (counts: NavigationCounts) => [
     badge: null,
   },
   {
-    title: "Availability",
-    url: "/worker-availability",
-    icon: Clock,
-    badge: null,
-  },
-  {
     title: "Reports",
     url: "/reports",
     icon: BarChart3,
@@ -100,6 +94,12 @@ export const getAdminItems = (counts: NavigationCounts) => [
     url: "/admin/feedback",
     icon: MessageSquarePlus,
     badge: counts.pendingFeedbackCount > 0 ? counts.pendingFeedbackCount.toString() : null,
+  },
+  {
+    title: "Team Availability",
+    url: "/admin/availability",
+    icon: Clock,
+    badge: null,
   },
   {
     title: "Schedule Planner",
