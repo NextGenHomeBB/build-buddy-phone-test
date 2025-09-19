@@ -11,8 +11,7 @@ export interface WorkerAvailability {
   start_time: string;
   end_time: string;
   is_available: boolean;
-  effective_from: string;
-  effective_until?: string;
+  max_hours: number;
   created_at: string;
   updated_at: string;
 }
@@ -22,9 +21,9 @@ export interface TimeOffRequest {
   user_id: string;
   start_date: string;
   end_date: string;
-  request_type: 'vacation' | 'sick_leave' | 'personal' | 'unpaid';
+  request_type: string;
   reason?: string;
-  status: 'pending' | 'approved' | 'denied' | 'cancelled';
+  status: string;
   days_requested: number;
   approved_by?: string;
   approved_at?: string;
@@ -63,7 +62,7 @@ export const useWorkerAvailability = () => {
         .order('day_of_week');
       
       if (error) throw error;
-      return data as WorkerAvailability[];
+      return data;
     },
     enabled: !!profile?.user_id,
   });
@@ -81,7 +80,7 @@ export const useWorkerAvailability = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as TimeOffRequest[];
+      return data;
     },
     enabled: !!profile?.user_id,
   });
@@ -99,19 +98,26 @@ export const useWorkerAvailability = () => {
         .order('override_date', { ascending: false });
       
       if (error) throw error;
-      return data as AvailabilityOverride[];
+      return data;
     },
     enabled: !!profile?.user_id,
   });
 
   // Create or update availability pattern
   const updateAvailabilityMutation = useMutation({
-    mutationFn: async (availability: Partial<WorkerAvailability>) => {
+    mutationFn: async (availability: {
+      day_of_week: number;
+      start_time: string;
+      end_time: string;
+      is_available: boolean;
+      max_hours?: number;
+    }) => {
       const { data, error } = await supabase
         .from('worker_availability')
         .upsert({
           ...availability,
-          user_id: profile?.user_id,
+          user_id: profile?.user_id!,
+          max_hours: availability.max_hours || 8,
         })
         .select()
         .single();
@@ -138,12 +144,18 @@ export const useWorkerAvailability = () => {
 
   // Submit time off request
   const submitTimeOffMutation = useMutation({
-    mutationFn: async (request: Partial<TimeOffRequest>) => {
+    mutationFn: async (request: {
+      start_date: string;
+      end_date: string;
+      request_type: string;
+      reason?: string;
+      days_requested: number;
+    }) => {
       const { data, error } = await supabase
         .from('time_off_requests')
         .insert({
           ...request,
-          user_id: profile?.user_id,
+          user_id: profile?.user_id!,
         })
         .select()
         .single();
@@ -170,12 +182,18 @@ export const useWorkerAvailability = () => {
 
   // Create availability override
   const createOverrideMutation = useMutation({
-    mutationFn: async (override: Partial<AvailabilityOverride>) => {
+    mutationFn: async (override: {
+      override_date: string;
+      start_time?: string;
+      end_time?: string;
+      is_available: boolean;
+      reason?: string;
+    }) => {
       const { data, error } = await supabase
         .from('availability_overrides')
         .upsert({
           ...override,
-          user_id: profile?.user_id,
+          user_id: profile?.user_id!,
         })
         .select()
         .single();

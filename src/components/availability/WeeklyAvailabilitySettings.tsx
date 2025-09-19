@@ -62,7 +62,7 @@ export const WeeklyAvailabilitySettings: React.FC<WeeklyAvailabilitySettingsProp
           is_available: pattern.is_available,
           start_time: pattern.start_time,
           end_time: pattern.end_time,
-          effective_from: new Date().toISOString().split('T')[0],
+          max_hours: 8,
         });
       }
       onOpenChange(false);
