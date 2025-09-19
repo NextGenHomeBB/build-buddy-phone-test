@@ -33,6 +33,12 @@ export const getNavigationItems = (counts: NavigationCounts) => [
     badge: null,
   },
   {
+    title: "Availability",
+    url: "/worker-availability",
+    icon: Clock,
+    badge: null,
+  },
+  {
     title: "Reports",
     url: "/reports",
     icon: BarChart3,
