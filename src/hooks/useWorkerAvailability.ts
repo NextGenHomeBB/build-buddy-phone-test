@@ -40,6 +40,10 @@ export interface AvailabilityOverride {
   end_time?: string;
   is_available: boolean;
   reason?: string;
+  status: 'pending' | 'approved' | 'denied';
+  approved_by?: string;
+  approved_at?: string;
+  admin_notes?: string;
   created_at: string;
   updated_at: string;
 }
@@ -205,8 +209,8 @@ export const useWorkerAvailability = () => {
       queryClient.invalidateQueries({ queryKey: ['availability-overrides'] });
       queryClient.invalidateQueries({ queryKey: ['team-availability'] });
       toast({
-        title: "Override Created",
-        description: "Your availability override has been set.",
+        title: "Override Submitted",
+        description: "Your availability override has been submitted for approval.",
       });
     },
     onError: (error) => {

@@ -49,11 +49,12 @@ export const TeamAvailabilityOverview = () => {
     ).length, 0
   ) || 0;
 
-  // Calculate actual available workers considering overrides
+  // Calculate actual available workers considering only approved overrides
   const unavailableOverrides = teamAvailability?.reduce((count, member) =>
     count + member.availabilityOverrides.filter(override =>
       isSameDay(new Date(override.override_date), new Date(selectedDate)) && 
-      !override.is_available
+      !override.is_available && 
+      override.status === 'approved'
     ).length, 0
   ) || 0;
 

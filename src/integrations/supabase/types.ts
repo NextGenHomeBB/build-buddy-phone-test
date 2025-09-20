@@ -63,6 +63,9 @@ export type Database = {
       }
       availability_overrides: {
         Row: {
+          admin_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           end_time: string | null
           id: string
@@ -70,10 +73,14 @@ export type Database = {
           override_date: string
           reason: string | null
           start_time: string | null
+          status: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           end_time?: string | null
           id?: string
@@ -81,10 +88,14 @@ export type Database = {
           override_date: string
           reason?: string | null
           start_time?: string | null
+          status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           end_time?: string | null
           id?: string
@@ -92,6 +103,7 @@ export type Database = {
           override_date?: string
           reason?: string | null
           start_time?: string | null
+          status?: string
           updated_at?: string
           user_id?: string
         }

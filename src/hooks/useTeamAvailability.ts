@@ -63,7 +63,10 @@ export const useTeamAvailability = () => {
             user: profile as TeamMember,
             availabilityPatterns: patterns || [],
             timeOffRequests: requests || [],
-            availabilityOverrides: overrides || [],
+            availabilityOverrides: overrides?.map(override => ({
+              ...override,
+              status: override.status as 'pending' | 'approved' | 'denied'
+            })) || [],
           };
         })
       );
@@ -81,6 +84,27 @@ export const useTeamAvailability = () => {
         .select(`
           *,
           profiles!time_off_requests_user_id_fkey (
+            name,
+            avatar_url
+          )
+        `)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch pending availability override requests for approval
+  const { data: pendingOverrides, isLoading: loadingPendingOverrides } = useQuery({
+    queryKey: ['pending-availability-overrides'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('availability_overrides')
+        .select(`
+          *,
+          profiles!availability_overrides_user_id_fkey (
             name,
             avatar_url
           )
@@ -136,6 +160,52 @@ export const useTeamAvailability = () => {
     },
   });
 
+  // Approve or deny availability override request
+  const processAvailabilityOverrideMutation = useMutation({
+    mutationFn: async ({ 
+      requestId, 
+      status, 
+      adminNotes 
+    }: { 
+      requestId: string; 
+      status: 'approved' | 'denied'; 
+      adminNotes?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from('availability_overrides')
+        .update({
+          status,
+          admin_notes: adminNotes,
+          approved_by: (await supabase.auth.getUser()).data.user?.id,
+          approved_at: new Date().toISOString(),
+        })
+        .eq('id', requestId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, { status }) => {
+      queryClient.invalidateQueries({ queryKey: ['pending-availability-overrides'] });
+      queryClient.invalidateQueries({ queryKey: ['team-availability'] });
+      queryClient.invalidateQueries({ queryKey: ['availability-overrides'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-availability'] });
+      toast({
+        title: status === 'approved' ? "Override Approved" : "Override Denied",
+        description: `Availability override has been ${status}.`,
+      });
+    },
+    onError: (error) => {
+      console.error('Error processing availability override:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process request. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Check if worker is available for specific date/time
   const checkWorkerAvailability = async (
     workerId: string,
@@ -174,14 +244,18 @@ export const useTeamAvailability = () => {
     // Data
     teamAvailability,
     pendingRequests,
+    pendingOverrides,
     
     // Loading states
     isLoading,
     isLoadingPending: loadingPending,
+    isLoadingPendingOverrides: loadingPendingOverrides,
     
     // Mutations
     processTimeOffRequest: processTimeOffMutation.mutate,
+    processAvailabilityOverride: processAvailabilityOverrideMutation.mutate,
     isProcessingRequest: processTimeOffMutation.isPending,
+    isProcessingOverride: processAvailabilityOverrideMutation.isPending,
     
     // Helper functions
     checkWorkerAvailability,

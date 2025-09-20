@@ -3,14 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useRoleAccess } from '@/hooks/useRoleAccess';
 import { WorkerAvailabilityDashboard } from '@/components/availability/WorkerAvailabilityDashboard';
 import { TeamAvailabilityOverview } from '@/components/availability/TeamAvailabilityOverview';
-import { TimeOffApprovalQueue } from '@/components/availability/TimeOffApprovalQueue';
+import AvailabilityApprovalQueue from '@/components/availability/AvailabilityApprovalQueue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ArrowLeft } from 'lucide-react';
+import { useTeamAvailability } from '@/hooks/useTeamAvailability';
 
 export default function WorkerAvailability() {
   const { isWorker, hasAdminAccess } = useRoleAccess();
   const navigate = useNavigate();
+  const { pendingRequests, pendingOverrides } = useTeamAvailability();
 
   if (isWorker()) {
     return (
@@ -56,7 +59,14 @@ export default function WorkerAvailability() {
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview">Team Overview</TabsTrigger>
-            <TabsTrigger value="approvals">Approval Queue</TabsTrigger>
+            <TabsTrigger value="approvals" className="flex items-center gap-2">
+              Approval Queue
+              {(pendingRequests?.length || 0) + (pendingOverrides?.length || 0) > 0 && (
+                <Badge variant="destructive">
+                  {(pendingRequests?.length || 0) + (pendingOverrides?.length || 0)}
+                </Badge>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -64,7 +74,7 @@ export default function WorkerAvailability() {
           </TabsContent>
 
           <TabsContent value="approvals">
-            <TimeOffApprovalQueue />
+            <AvailabilityApprovalQueue />
           </TabsContent>
         </Tabs>
       </div>

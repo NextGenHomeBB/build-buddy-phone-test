@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { TimeOffRequestDialog } from './TimeOffRequestDialog';
 import { WeeklyAvailabilitySettings } from './WeeklyAvailabilitySettings';
 import { QuickUnavailabilityDialog } from './QuickUnavailabilityDialog';
+import { AvailabilityStatusBadge } from './AvailabilityStatusBadge';
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -48,6 +49,7 @@ export const WorkerAvailabilityDashboard = () => {
     req.status === 'approved' && new Date(req.start_date) > new Date()
   ) || [];
   const recentOverrides = availabilityOverrides?.slice(0, 5) || [];
+  const pendingOverrides = availabilityOverrides?.filter(override => override.status === 'pending') || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -228,9 +230,15 @@ export const WorkerAvailabilityDashboard = () => {
                           <Badge variant={override.is_available ? "default" : "destructive"}>
                             {override.is_available ? 'Available' : 'Unavailable'}
                           </Badge>
+                          <AvailabilityStatusBadge status={override.status as 'pending' | 'approved' | 'denied'} />
                         </div>
                         {override.reason && (
                           <p className="text-sm text-muted-foreground">{override.reason}</p>
+                        )}
+                        {override.status === 'denied' && override.admin_notes && (
+                          <p className="text-sm text-red-600 mt-1">
+                            <strong>Admin notes:</strong> {override.admin_notes}
+                          </p>
                         )}
                       </div>
                       {override.start_time && override.end_time && (
