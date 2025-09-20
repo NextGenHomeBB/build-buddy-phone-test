@@ -4,16 +4,21 @@ import { useRoleAccess } from '@/hooks/useRoleAccess';
 import { WorkerAvailabilityDashboard } from '@/components/availability/WorkerAvailabilityDashboard';
 import { TeamAvailabilityOverview } from '@/components/availability/TeamAvailabilityOverview';
 import AvailabilityApprovalQueue from '@/components/availability/AvailabilityApprovalQueue';
+import { DebugAvailabilityInfo } from '@/components/availability/DebugAvailabilityInfo';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft } from 'lucide-react';
 import { useTeamAvailability } from '@/hooks/useTeamAvailability';
+import { useAvailabilityRealtime } from '@/hooks/useAvailabilityRealtime';
 
 export default function WorkerAvailability() {
   const { isWorker, hasAdminAccess } = useRoleAccess();
   const navigate = useNavigate();
   const { pendingRequests, pendingOverrides } = useTeamAvailability();
+  
+  // Enable real-time updates
+  useAvailabilityRealtime();
 
   if (isWorker()) {
     return (
@@ -55,6 +60,8 @@ export default function WorkerAvailability() {
             Overview of team availability, approve time off requests, and manage schedules.
           </p>
         </div>
+        
+        <DebugAvailabilityInfo />
         
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>

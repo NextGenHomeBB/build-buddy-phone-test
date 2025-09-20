@@ -193,16 +193,24 @@ export const useWorkerAvailability = () => {
       is_available: boolean;
       reason?: string;
     }) => {
+      console.log('Creating availability override:', { ...override, user_id: profile?.user_id });
+      
       const { data, error } = await supabase
         .from('availability_overrides')
-        .upsert({
+        .insert({
           ...override,
           user_id: profile?.user_id!,
+          status: 'pending' as const,
         })
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Failed to create override:', error);
+        throw error;
+      }
+      
+      console.log('Override created successfully:', data);
       return data;
     },
     onSuccess: () => {

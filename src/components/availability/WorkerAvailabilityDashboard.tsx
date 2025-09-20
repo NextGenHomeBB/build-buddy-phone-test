@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Clock, Plus, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useWorkerAvailability } from '@/hooks/useWorkerAvailability';
+import { useAvailabilityRealtime } from '@/hooks/useAvailabilityRealtime';
 import { format } from 'date-fns';
 import { TimeOffRequestDialog } from './TimeOffRequestDialog';
 import { WeeklyAvailabilitySettings } from './WeeklyAvailabilitySettings';
@@ -24,6 +25,9 @@ export const WorkerAvailabilityDashboard = () => {
     availabilityOverrides,
     isLoading,
   } = useWorkerAvailability();
+  
+  // Enable real-time updates
+  useAvailabilityRealtime();
 
   if (isLoading) {
     return (
@@ -50,6 +54,10 @@ export const WorkerAvailabilityDashboard = () => {
   ) || [];
   const recentOverrides = availabilityOverrides?.slice(0, 5) || [];
   const pendingOverrides = availabilityOverrides?.filter(override => override.status === 'pending') || [];
+  
+  // Debug logging
+  console.log('Worker dashboard - pending requests:', pendingRequests.length);
+  console.log('Worker dashboard - pending overrides:', pendingOverrides.length);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -69,7 +77,10 @@ export const WorkerAvailabilityDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Pending Requests</p>
-                <p className="text-2xl font-bold">{pendingRequests.length}</p>
+                <p className="text-2xl font-bold">{pendingRequests.length + pendingOverrides.length}</p>
+                <p className="text-xs text-muted-foreground">
+                  {pendingRequests.length} time off, {pendingOverrides.length} overrides
+                </p>
               </div>
               <AlertCircle className="h-8 w-8 text-warning" />
             </div>
