@@ -49,7 +49,15 @@ export const TeamAvailabilityOverview = () => {
     ).length, 0
   ) || 0;
 
-  const availableWorkers = totalWorkers - approvedTimeOff;
+  // Calculate actual available workers considering overrides
+  const unavailableOverrides = teamAvailability?.reduce((count, member) =>
+    count + member.availabilityOverrides.filter(override =>
+      isSameDay(new Date(override.override_date), new Date(selectedDate)) && 
+      !override.is_available
+    ).length, 0
+  ) || 0;
+
+  const availableWorkers = totalWorkers - approvedTimeOff - unavailableOverrides;
 
   const getWeekDays = (date: string) => {
     const startDate = startOfWeek(new Date(date));

@@ -203,6 +203,7 @@ export const useWorkerAvailability = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['availability-overrides'] });
+      queryClient.invalidateQueries({ queryKey: ['team-availability'] });
       toast({
         title: "Override Created",
         description: "Your availability override has been set.",

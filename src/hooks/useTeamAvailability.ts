@@ -26,11 +26,11 @@ export const useTeamAvailability = () => {
   const { data: teamAvailability, isLoading } = useQuery({
     queryKey: ['team-availability'],
     queryFn: async () => {
-      // First get all team members
+      // First get all team members (including admins)
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('user_id, name, avatar_url, phone, role')
-        .in('role', ['worker', 'manager']);
+        .in('role', ['worker', 'manager', 'admin']);
       
       if (profilesError) throw profilesError;
 
