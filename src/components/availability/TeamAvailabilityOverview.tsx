@@ -45,7 +45,8 @@ export const TeamAvailabilityOverview = () => {
   
   const activeOverrides = teamAvailability?.reduce((count, member) =>
     count + member.availabilityOverrides.filter(override =>
-      isSameDay(new Date(override.override_date), new Date(selectedDate))
+      isSameDay(new Date(override.override_date), new Date(selectedDate)) &&
+      override.status === 'approved'
     ).length, 0
   ) || 0;
 
@@ -79,9 +80,10 @@ export const TeamAvailabilityOverview = () => {
     
     if (hasTimeOff) return { status: 'off', label: 'Time Off' };
     
-    // Check for overrides
+    // Check for approved overrides only
     const override = member.availabilityOverrides.find((override: any) =>
-      isSameDay(new Date(override.override_date), date)
+      isSameDay(new Date(override.override_date), date) && 
+      override.status === 'approved'
     );
     
     if (override) {

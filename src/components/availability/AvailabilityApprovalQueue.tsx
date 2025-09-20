@@ -132,12 +132,12 @@ const AvailabilityApprovalQueue = () => {
                             <User className="w-4 h-4" />
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <p className="font-medium">{request.profiles?.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(request.created_at), 'MMM d, yyyy')}
-                          </p>
-                        </div>
+                         <div>
+                           <p className="font-medium">{request.profiles?.name || 'Unknown User'}</p>
+                           <p className="text-sm text-muted-foreground">
+                             {format(new Date(request.created_at), 'MMM d, yyyy')}
+                           </p>
+                         </div>
                       </div>
                       <Badge className={getRequestTypeColor(request.request_type)}>
                         {request.request_type.replace('_', ' ')}
@@ -194,12 +194,12 @@ const AvailabilityApprovalQueue = () => {
                             <User className="w-4 h-4" />
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <p className="font-medium">{override.profiles?.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(override.created_at), 'MMM d, yyyy')}
-                          </p>
-                        </div>
+                         <div>
+                           <p className="font-medium">{override.profiles?.name || 'Unknown User'}</p>
+                           <p className="text-sm text-muted-foreground">
+                             {format(new Date(override.created_at), 'MMM d, yyyy')}
+                           </p>
+                         </div>
                       </div>
                       <Badge className={getOverrideTypeColor(override.is_available)}>
                         {override.is_available ? 'Available' : 'Unavailable'}

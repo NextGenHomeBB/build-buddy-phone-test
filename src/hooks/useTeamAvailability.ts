@@ -79,20 +79,46 @@ export const useTeamAvailability = () => {
   const { data: pendingRequests, isLoading: loadingPending } = useQuery({
     queryKey: ['pending-time-off-requests'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log('Fetching pending time off requests...');
+      const { data: requests, error } = await supabase
         .from('time_off_requests')
-        .select(`
-          *,
-          profiles!time_off_requests_user_id_fkey (
-            name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Error fetching time off requests:', error);
+        throw error;
+      }
+
+      if (!requests || requests.length === 0) {
+        console.log('No pending time off requests found');
+        return [];
+      }
+
+      // Fetch profiles separately
+      const userIds = requests.map(r => r.user_id);
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id, name, avatar_url')
+        .in('user_id', userIds);
+
+      if (profileError) {
+        console.error('Error fetching profiles for time off requests:', profileError);
+        throw profileError;
+      }
+
+      // Merge requests with profiles
+      const requestsWithProfiles = requests.map(request => ({
+        ...request,
+        profiles: profiles?.find(p => p.user_id === request.user_id) || { 
+          name: 'Unknown User', 
+          avatar_url: null 
+        }
+      }));
+
+      console.log('Pending time off requests with profiles:', requestsWithProfiles);
+      return requestsWithProfiles;
     },
   });
 
@@ -100,20 +126,46 @@ export const useTeamAvailability = () => {
   const { data: pendingOverrides, isLoading: loadingPendingOverrides } = useQuery({
     queryKey: ['pending-availability-overrides'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log('Fetching pending availability overrides...');
+      const { data: overrides, error } = await supabase
         .from('availability_overrides')
-        .select(`
-          *,
-          profiles!availability_overrides_user_id_fkey (
-            name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Error fetching availability overrides:', error);
+        throw error;
+      }
+
+      if (!overrides || overrides.length === 0) {
+        console.log('No pending availability overrides found');
+        return [];
+      }
+
+      // Fetch profiles separately
+      const userIds = overrides.map(o => o.user_id);
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id, name, avatar_url')
+        .in('user_id', userIds);
+
+      if (profileError) {
+        console.error('Error fetching profiles for overrides:', profileError);
+        throw profileError;
+      }
+
+      // Merge overrides with profiles
+      const overridesWithProfiles = overrides.map(override => ({
+        ...override,
+        profiles: profiles?.find(p => p.user_id === override.user_id) || { 
+          name: 'Unknown User', 
+          avatar_url: null 
+        }
+      }));
+
+      console.log('Pending availability overrides with profiles:', overridesWithProfiles);
+      return overridesWithProfiles;
     },
   });
 
