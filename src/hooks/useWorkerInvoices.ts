@@ -152,24 +152,40 @@ export function useWorkerInvoices() {
 
   const generateInvoice = async (workerId?: string, periodStart?: string, periodEnd?: string) => {
     try {
-      // This would typically aggregate timesheet data
-      // For now, we'll create a placeholder implementation
-      const { data: timesheets, error } = await supabase
-        .from('timesheets')
-        .select(`
-          *,
-          profiles!timesheets_user_id_fkey (
-            name
-          ),
-          projects (
-            name
-          )
-        `)
-        .gte('work_date', periodStart || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
-        .lte('work_date', periodEnd || new Date().toISOString().split('T')[0])
-        .eq('user_id', workerId || '');
+      if (!workerId) {
+        throw new Error('Worker ID is required to generate invoice');
+      }
 
-      if (error) throw error;
+      const startDate = periodStart || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const endDate = periodEnd || new Date().toISOString().split('T')[0];
+
+      // Query timesheets for the specified period and worker
+      const { data: timesheets, error: timesheetError } = await supabase
+        .from('timesheets')
+        .select('*, projects(name)')
+        .gte('work_date', startDate)
+        .lte('work_date', endDate)
+        .eq('user_id', workerId);
+
+      if (timesheetError) throw timesheetError;
+
+      // Get worker profile information separately
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('user_id', workerId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      if (!timesheets || timesheets.length === 0) {
+        toast({
+          title: "No Data",
+          description: `No timesheets found for ${profile?.name || 'worker'} in the selected period`,
+          variant: "destructive"
+        });
+        return;
+      }
 
       // Aggregate hours and calculate totals
       const totalHours = timesheets.reduce((sum, ts) => sum + (ts.duration_generated || 0), 0);
@@ -180,8 +196,8 @@ export function useWorkerInvoices() {
 
       const invoiceData = {
         worker_id: workerId,
-        period_start: periodStart || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        period_end: periodEnd || new Date().toISOString().split('T')[0],
+        period_start: startDate,
+        period_end: endDate,
         total_hours: totalHours,
         hourly_rate: hourlyRate,
         subtotal,
@@ -190,12 +206,17 @@ export function useWorkerInvoices() {
         status: 'draft' as const
       };
 
-      return await createInvoice(invoiceData);
+      await createInvoice(invoiceData);
+      
+      toast({
+        title: "Success",
+        description: `Invoice generated for ${profile?.name || 'worker'} (${totalHours.toFixed(2)} hours)`,
+      });
     } catch (error) {
       console.error('Error generating invoice:', error);
       toast({
         title: "Error",
-        description: "Failed to generate invoice from timesheets",
+        description: error instanceof Error ? error.message : "Failed to generate invoice from timesheets",
         variant: "destructive"
       });
       throw error;
