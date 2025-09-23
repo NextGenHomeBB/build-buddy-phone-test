@@ -831,6 +831,116 @@ export type Database = {
           },
         ]
       }
+      project_invoice_items: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          invoice_id: string | null
+          item_type: string | null
+          phase_id: string | null
+          quantity: number | null
+          total: number | null
+          unit_price: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          invoice_id?: string | null
+          item_type?: string | null
+          phase_id?: string | null
+          quantity?: number | null
+          total?: number | null
+          unit_price?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          invoice_id?: string | null
+          item_type?: string | null
+          phase_id?: string | null
+          quantity?: number | null
+          total?: number | null
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "project_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_invoices: {
+        Row: {
+          billing_type: string | null
+          client_address: string | null
+          client_email: string | null
+          client_name: string | null
+          created_at: string | null
+          discount_amount: number | null
+          due_date: string | null
+          id: string
+          invoice_number: string
+          issued_date: string | null
+          net_amount: number | null
+          notes: string | null
+          paid_date: string | null
+          payment_terms: string | null
+          project_id: string
+          status: string | null
+          tax_amount: number | null
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          billing_type?: string | null
+          client_address?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          created_at?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          issued_date?: string | null
+          net_amount?: number | null
+          notes?: string | null
+          paid_date?: string | null
+          payment_terms?: string | null
+          project_id: string
+          status?: string | null
+          tax_amount?: number | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          billing_type?: string | null
+          client_address?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          created_at?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          issued_date?: string | null
+          net_amount?: number | null
+          notes?: string | null
+          paid_date?: string | null
+          payment_terms?: string | null
+          project_id?: string
+          status?: string | null
+          tax_amount?: number | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       project_materials: {
         Row: {
           cost_per_unit: number
@@ -1920,6 +2030,113 @@ export type Database = {
         }
         Relationships: []
       }
+      worker_invoice_items: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          description: string | null
+          hours: number | null
+          id: string
+          invoice_id: string | null
+          phase_id: string | null
+          project_id: string | null
+          rate: number | null
+          work_date: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          hours?: number | null
+          id?: string
+          invoice_id?: string | null
+          phase_id?: string | null
+          project_id?: string | null
+          rate?: number | null
+          work_date?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          hours?: number | null
+          id?: string
+          invoice_id?: string | null
+          phase_id?: string | null
+          project_id?: string | null
+          rate?: number | null
+          work_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "worker_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      worker_invoices: {
+        Row: {
+          created_at: string | null
+          due_date: string | null
+          hourly_rate: number | null
+          id: string
+          invoice_number: string
+          issued_date: string | null
+          notes: string | null
+          paid_date: string | null
+          period_end: string
+          period_start: string
+          status: string | null
+          subtotal: number | null
+          tax_amount: number | null
+          total_amount: number | null
+          total_hours: number | null
+          updated_at: string | null
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          due_date?: string | null
+          hourly_rate?: number | null
+          id?: string
+          invoice_number: string
+          issued_date?: string | null
+          notes?: string | null
+          paid_date?: string | null
+          period_end: string
+          period_start: string
+          status?: string | null
+          subtotal?: number | null
+          tax_amount?: number | null
+          total_amount?: number | null
+          total_hours?: number | null
+          updated_at?: string | null
+          worker_id: string
+        }
+        Update: {
+          created_at?: string | null
+          due_date?: string | null
+          hourly_rate?: number | null
+          id?: string
+          invoice_number?: string
+          issued_date?: string | null
+          notes?: string | null
+          paid_date?: string | null
+          period_end?: string
+          period_start?: string
+          status?: string | null
+          subtotal?: number | null
+          tax_amount?: number | null
+          total_amount?: number | null
+          total_hours?: number | null
+          updated_at?: string | null
+          worker_id?: string
+        }
+        Relationships: []
+      }
       worker_rates: {
         Row: {
           approved_at: string | null
@@ -2104,6 +2321,10 @@ export type Database = {
       link_placeholder_to_auth_user: {
         Args: { auth_user_id: string; placeholder_name: string }
         Returns: boolean
+      }
+      stop_current_work: {
+        Args: { user_id_param: string }
+        Returns: Json
       }
       sync_project_phase_tasks_with_default: {
         Args: { default_phase_id: string }
