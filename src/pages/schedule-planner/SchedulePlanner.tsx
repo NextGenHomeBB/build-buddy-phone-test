@@ -207,7 +207,7 @@ function DroppableScheduleItem({ item, onWorkerClick, onWorkerTaskAssign, unassi
           </div>
           <div className="text-sm text-purple-600 font-medium flex items-center gap-1">
             <span>⏰</span>
-            until 17:00
+            from 9:00 to 17:00
           </div>
           {item.project_id && (
             <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full inline-flex items-center gap-1">
