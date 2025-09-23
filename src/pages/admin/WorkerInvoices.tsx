@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Search, Filter, FileText, Eye, Send, Check } from "lucide-react";
+import { Plus, Search, Filter, FileText, Eye, Send, Check, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { WorkerInvoiceDialog } from "@/components/invoices/WorkerInvoiceDialog";
 import { format } from "date-fns";
 
 export default function WorkerInvoices() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -55,6 +57,16 @@ export default function WorkerInvoices() {
 
   return (
     <div className="space-y-6">
+      {/* Back Button */}
+      <Button 
+        variant="ghost" 
+        onClick={() => navigate(-1)}
+        className="gap-2 w-fit"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back
+      </Button>
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
