@@ -72,21 +72,9 @@ export const getAdminItems = (counts: NavigationCounts) => [
     badge: null,
   },
   {
-    title: "Worker Costs",
-    url: "/admin/worker-costs",
-    icon: DollarSign,
-    badge: null,
-  },
-  {
-    title: "Worker Invoices",
-    url: "/admin/worker-invoices",
+    title: "Invoices",
+    url: "/admin/invoices",
     icon: Receipt,
-    badge: null,
-  },
-  {
-    title: "Project Invoices",
-    url: "/admin/project-invoices",
-    icon: FileText,
     badge: null,
   },
   {
