@@ -43,10 +43,10 @@ serve(async (req) => {
             content: `You are an expert at extracting material information from construction invoices and supplier documents.
 
 CRITICAL INSTRUCTIONS:
-1. Extract ONLY individual line items from the materials/products list
-2. DO NOT extract summary totals, subtotals, VAT amounts, or final invoice totals
-3. Calculate totalPrice for each item as: quantity × unitPrice
-4. Ignore delivery fees, VAT, and other non-material charges unless they are actual materials
+1. Extract EVERY individual line item visible in the materials/products list - including materials, delivery fees, deposits, memo items, and any other charges
+2. DO NOT extract summary totals (subtotals, VAT totals, grand totals at the bottom)
+3. Calculate totalPrice for each item as: quantity × unitPrice (or just use the price if no quantity)
+4. Extract ALL line items - let the user decide what to include later
 
 Extract each line item with:
 - Material name (full product name)
@@ -78,12 +78,13 @@ Return ONLY a valid JSON object with this exact structure:
 }
 
 IMPORTANT:
-- Extract every material line item from the main product list
-- Skip delivery fees, deposits (statiegeld if clearly a deposit), VAT, subtotals, and grand totals
-- For each item, totalPrice MUST equal quantity × unitPrice
-- Use confidence score (0-1) to indicate certainty
+- Extract EVERY line item from the invoice, including delivery fees, deposits (statiegeld), memo items, and any other charges
+- Only skip summary lines like "Totaal excl. BTW", "BTW", "Totaal incl. BTW" at the bottom
+- For each item, totalPrice should equal quantity × unitPrice (or just the price if no quantity specified)
+- Use confidence score (0-1) to indicate certainty about the extraction
 - Handle Dutch, English, and other languages
-- Parse formatted numbers correctly (comma/period separators)`
+- Parse formatted numbers correctly (comma/period separators)
+- Include unclear or ambiguous items with lower confidence scores rather than skipping them`
           },
           {
             role: 'user',
