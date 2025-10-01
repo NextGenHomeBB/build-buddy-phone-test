@@ -946,10 +946,13 @@ export type Database = {
           cost_per_unit: number
           created_at: string
           id: string
+          invoice_date: string | null
+          invoice_document_url: string | null
           material_id: string
           project_id: string
           quantity_needed: number
           quantity_used: number
+          supplier_name: string | null
           total_cost: number
           updated_at: string
         }
@@ -957,10 +960,13 @@ export type Database = {
           cost_per_unit?: number
           created_at?: string
           id?: string
+          invoice_date?: string | null
+          invoice_document_url?: string | null
           material_id: string
           project_id: string
           quantity_needed?: number
           quantity_used?: number
+          supplier_name?: string | null
           total_cost?: number
           updated_at?: string
         }
@@ -968,10 +974,13 @@ export type Database = {
           cost_per_unit?: number
           created_at?: string
           id?: string
+          invoice_date?: string | null
+          invoice_document_url?: string | null
           material_id?: string
           project_id?: string
           quantity_needed?: number
           quantity_used?: number
+          supplier_name?: string | null
           total_cost?: number
           updated_at?: string
         }

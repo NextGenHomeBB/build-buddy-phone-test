@@ -9,9 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Package, Search, Calculator } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Search, Calculator, FileUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRoleAccess } from '@/hooks/useRoleAccess';
+import { InvoiceUploadDialog } from '@/components/materials/InvoiceUploadDialog';
+import { ExtractedMaterialsReview } from '@/components/materials/ExtractedMaterialsReview';
 
 interface Material {
   id: string;
@@ -42,10 +44,20 @@ export function ProjectMaterials({ projectId }: ProjectMaterialsProps) {
   const [selectedMaterial, setSelectedMaterial] = useState<string>('');
   const [quantityNeeded, setQuantityNeeded] = useState<number>(0);
   const [editingMaterial, setEditingMaterial] = useState<ProjectMaterial | null>(null);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [extractedData, setExtractedData] = useState<any>(null);
+  const [invoiceUrl, setInvoiceUrl] = useState<string>('');
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { canManageMaterials } = useRoleAccess();
+
+  const handleExtractComplete = (data: any, url: string) => {
+    setExtractedData(data);
+    setInvoiceUrl(url);
+    setIsReviewDialogOpen(true);
+  };
 
   // Fetch all available materials
   const { data: availableMaterials = [] } = useQuery({
@@ -308,13 +320,22 @@ export function ProjectMaterials({ projectId }: ProjectMaterialsProps) {
               </CardDescription>
             </div>
             {canManageMaterials() && (
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Material
-                  </Button>
-                </DialogTrigger>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => setIsUploadDialogOpen(true)}
+                >
+                  <FileUp className="h-4 w-4 mr-2" />
+                  Upload Invoice
+                </Button>
+                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Material
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Add Material to Project</DialogTitle>
@@ -385,6 +406,7 @@ export function ProjectMaterials({ projectId }: ProjectMaterialsProps) {
                   </div>
                 </DialogContent>
               </Dialog>
+              </div>
             )}
           </div>
         </CardHeader>
@@ -530,6 +552,23 @@ export function ProjectMaterials({ projectId }: ProjectMaterialsProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* AI Invoice Upload Dialog */}
+      <InvoiceUploadDialog
+        open={isUploadDialogOpen}
+        onOpenChange={setIsUploadDialogOpen}
+        onExtractComplete={handleExtractComplete}
+        projectId={projectId}
+      />
+
+      {/* Extracted Materials Review Dialog */}
+      <ExtractedMaterialsReview
+        open={isReviewDialogOpen}
+        onOpenChange={setIsReviewDialogOpen}
+        extractedData={extractedData}
+        invoiceUrl={invoiceUrl}
+        projectId={projectId}
+      />
     </div>
   );
 }
