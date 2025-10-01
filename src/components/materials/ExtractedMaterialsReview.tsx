@@ -58,7 +58,11 @@ export function ExtractedMaterialsReview({
 
   const addMaterialsMutation = useMutation({
     mutationFn: async (materials: ExtractedMaterial[]) => {
-      const results = [];
+      const results = {
+        added: [] as any[],
+        skipped: [] as any[],
+        updated: [] as any[],
+      };
 
       for (const material of materials) {
         // First, check if material exists in materials table
@@ -97,35 +101,82 @@ export function ExtractedMaterialsReview({
           materialId = newMaterial.id;
         }
 
-        // Add to project_materials
-        const { data, error } = await supabase
+        // Check if material is already in project
+        const { data: existingProjectMaterial } = await supabase
           .from('project_materials')
-          .insert({
-            project_id: projectId,
-            material_id: materialId,
-            quantity_needed: material.quantity,
-            quantity_used: 0,
-            cost_per_unit: material.unitPrice,
-            total_cost: material.totalPrice,
-            supplier_name: extractedData?.supplier,
-            invoice_date: extractedData?.invoiceDate,
-            invoice_document_url: invoiceUrl,
-          })
-          .select();
+          .select('id, quantity_needed')
+          .eq('project_id', projectId)
+          .eq('material_id', materialId)
+          .single();
 
-        if (error) throw error;
-        results.push(data);
+        if (existingProjectMaterial) {
+          // Material already exists in project - update quantity
+          const { data: updated, error: updateError } = await supabase
+            .from('project_materials')
+            .update({
+              quantity_needed: existingProjectMaterial.quantity_needed + material.quantity,
+              total_cost: (existingProjectMaterial.quantity_needed + material.quantity) * material.unitPrice,
+            })
+            .eq('id', existingProjectMaterial.id)
+            .select();
+
+          if (updateError) {
+            console.error('Error updating material:', updateError);
+            results.skipped.push({ material, reason: updateError.message });
+          } else {
+            results.updated.push({ material, data: updated });
+          }
+        } else {
+          // Add new material to project
+          const { data, error } = await supabase
+            .from('project_materials')
+            .insert({
+              project_id: projectId,
+              material_id: materialId,
+              quantity_needed: material.quantity,
+              quantity_used: 0,
+              cost_per_unit: material.unitPrice,
+              total_cost: material.totalPrice,
+              supplier_name: extractedData?.supplier,
+              invoice_date: extractedData?.invoiceDate,
+              invoice_document_url: invoiceUrl,
+            })
+            .select();
+
+          if (error) {
+            console.error('Error adding material:', error);
+            results.skipped.push({ material, reason: error.message });
+          } else {
+            results.added.push(data);
+          }
+        }
       }
 
       return results;
     },
-    onSuccess: () => {
+    onSuccess: (results) => {
       queryClient.invalidateQueries({ queryKey: ['project-materials', projectId] });
       queryClient.invalidateQueries({ queryKey: ['materials'] });
+      
+      const totalProcessed = results.added.length + results.updated.length + results.skipped.length;
+      let description = '';
+      
+      if (results.added.length > 0) {
+        description += `Added ${results.added.length} new material${results.added.length > 1 ? 's' : ''}. `;
+      }
+      if (results.updated.length > 0) {
+        description += `Updated ${results.updated.length} existing material${results.updated.length > 1 ? 's' : ''} with new quantities. `;
+      }
+      if (results.skipped.length > 0) {
+        description += `Skipped ${results.skipped.length} material${results.skipped.length > 1 ? 's' : ''} due to errors.`;
+      }
+      
       toast({
-        title: "Materials added",
-        description: `Successfully added ${selectedMaterials.size} materials to project`,
+        title: results.skipped.length === totalProcessed ? "No materials added" : "Materials processed",
+        description: description.trim() || `Successfully processed ${totalProcessed} materials`,
+        variant: results.skipped.length === totalProcessed ? "destructive" : "default",
       });
+      
       onOpenChange(false);
       setSelectedMaterials(new Set());
       setEditingIndex(null);
