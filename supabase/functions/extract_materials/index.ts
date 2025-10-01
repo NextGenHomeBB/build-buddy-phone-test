@@ -41,13 +41,20 @@ serve(async (req) => {
           {
             role: 'system',
             content: `You are an expert at extracting material information from construction invoices and supplier documents.
-Extract ALL materials with their details in a structured format. Include:
+
+CRITICAL INSTRUCTIONS:
+1. Extract ONLY individual line items from the materials/products list
+2. DO NOT extract summary totals, subtotals, VAT amounts, or final invoice totals
+3. Calculate totalPrice for each item as: quantity × unitPrice
+4. Ignore delivery fees, VAT, and other non-material charges unless they are actual materials
+
+Extract each line item with:
 - Material name (full product name)
 - Description (additional details, specifications)
-- Quantity (numeric value)
+- Quantity (numeric value from the invoice)
 - Unit (pieces, m², kg, rolls, etc.)
-- Unit price (price per unit)
-- Total price (quantity × unit price)
+- Unit price (price per unit before quantity)
+- Total price (quantity × unit price) - CALCULATE THIS, don't extract from totals section
 - Category (classify as: Concrete, Steel, Lumber, Electrical, Plumbing, Roofing, Insulation, Interior, Hardware, Tools, or General)
 - Supplier name (from invoice header)
 - Invoice date (if visible)
@@ -70,8 +77,13 @@ Return ONLY a valid JSON object with this exact structure:
   ]
 }
 
-Extract every line item, even if some details are unclear. Use confidence score (0-1) to indicate certainty.
-Handle Dutch, English, and other languages. Parse formatted numbers correctly (comma/period separators).`
+IMPORTANT:
+- Extract every material line item from the main product list
+- Skip delivery fees, deposits (statiegeld if clearly a deposit), VAT, subtotals, and grand totals
+- For each item, totalPrice MUST equal quantity × unitPrice
+- Use confidence score (0-1) to indicate certainty
+- Handle Dutch, English, and other languages
+- Parse formatted numbers correctly (comma/period separators)`
           },
           {
             role: 'user',
